@@ -48,8 +48,8 @@ jobs.db
 jobs.db-*
 logs/
 mcp.json
-approvals*
-routine_state*
+/approvals*
+/routine_state*
 browser_profile/
 playwright/
 drafts/
