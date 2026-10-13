@@ -489,6 +489,7 @@
       <button class="hbtn" id="themeBtn" title="tema"><span data-icon="moon" data-size="18"></span></button>
       <a class="hbtn" id="memBtn" href="/memorias" title="Memórias"><span data-icon="folder" data-size="18"></span></a>
       <a class="hbtn" id="grafoBtn" href="/grafo" title="Grafo"><span data-icon="graph" data-size="18"></span></a>
+<a class="hbtn" id="ativBtn" href="/atividade" title="Atividade" style="position:relative"><span data-icon="gauge" data-size="18"></span><b id="ativBadge" style="display:none;position:absolute;top:2px;right:2px;min-width:14px;height:14px;border-radius:7px;background:#d33;color:#fff;font-size:10px;line-height:14px;text-align:center"></b></a>
 <a class="hbtn" id="aprovBtn" href="/aprovacoes" title="Aprovações"><span data-icon="check" data-size="18"></span></a>
       <button class="hbtn" id="gear" title="config"><span data-icon="settings" data-size="18"></span></button>
     </header>
@@ -1439,6 +1440,15 @@ AjustesUI.init(hostAj);
 // não recarrega o estado com o painel de ajustes aberto (isso apagava a senha digitada)
 setInterval(()=>{if(!ocupado&&!$('#cfg').classList.contains('open'))carregarEstado();},10000);
 atualizarSistema();setInterval(atualizarSistema,3000);
+</script>
+<script>
+(function(){ /* alertas do vigia/rotinas: contador no botao Atividade */
+  const b = document.getElementById("ativBadge"); if (!b) return;
+  const atualizar = () => fetch("/api/notificacoes?nao_lidas=1&limite=99").then(r => r.json()).then(d => {
+    const n = d.notificacoes.length; b.textContent = n > 9 ? "9+" : n; b.style.display = n ? "block" : "none"; }).catch(() => {});
+  atualizar();
+  try { new EventSource("/eventos").addEventListener("message", m => { try { if (JSON.parse(m.data).tipo === "notificacao") atualizar(); } catch (_) {} }); } catch (_) {}
+})();
 </script>
 </body>
 </html>

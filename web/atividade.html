@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Atlas - Atividade</title>
+<link rel="icon" href="/static/favicon.png">
+<link rel="stylesheet" href="/static/ui.css">
+<style>
+ body{padding:24px;max-width:1100px;margin:0 auto}
+ .tabs button{margin-right:6px}.tabs button.on{font-weight:700;text-decoration:underline}
+ .card{border:1px solid var(--line,#333);border-radius:10px;padding:10px 14px;margin:8px 0}
+ .card pre{white-space:pre-wrap;word-break:break-word;max-height:300px;overflow:auto;font-size:12px;margin:6px 0 0}
+ .meta{opacity:.7;font-size:12px}.erro{border-color:#c44}.aviso{border-color:#c90}
+ .msg{border-left:3px solid #666;padding:4px 10px;margin:6px 0}.msg.tool{border-color:#58a}.msg.assistant{border-color:#5a5}
+ table{border-collapse:collapse;width:100%}td,th{padding:4px 8px;border-bottom:1px solid #3333;text-align:left;font-size:13px}
+ .vazio{opacity:.6;padding:20px 0}
+</style>
+</head>
+<body>
+<header><a href="/">&larr; Atlas</a> <h2 style="display:inline;margin-left:12px">Atividade</h2>
+ <a href="/aprovacoes" style="margin-left:16px">Aprovações</a></header>
+<div class="tabs" style="margin:14px 0">
+ <button data-t="alertas">Alertas</button><button data-t="jobs">Jobs</button>
+ <button data-t="rotinas">Rotinas</button><button data-t="sistema">Sistema</button><button data-t="eventos">Eventos</button>
+</div>
+<div id="v"></div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const quando = t => t ? new Date(t * 1000).toLocaleString() : "-";
+const get = async u => (await fetch(u)).json();
+const post = (u, b) => fetch(u, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(b || {})});
+let aba = "alertas";
+const V = {
+  async alertas() {
+    const d = await get("/api/notificacoes?limite=100");
+    return `<button id="lerTudo">Marcar tudo como lido</button>` + (d.notificacoes.length ? d.notificacoes.map(n => `
+      <div class="card ${esc(n.nivel)}" style="opacity:${n.lida ? .55 : 1}"><b>${esc(n.titulo)}</b>
+      <span class="meta">${quando(n.created)} · ${esc(n.routine)}</span><pre>${esc(n.corpo)}</pre></div>`).join("")
+      : '<div class="vazio">Nenhum alerta.</div>');
+  },
+  async jobs() {
+    const d = await get("/api/jobs?limite=100");
+    if (!d.jobs.length) return '<div class="vazio">Nenhum job.</div>';
+    return `<table><tr><th>Job</th><th>Bot</th><th>Estado</th><th>Tent.</th><th>Criado</th><th>Atualizado</th><th></th></tr>` +
+      d.jobs.map(j => `<tr><td>${esc(j.id)}</td><td>${esc(j.bot)}</td><td>${esc(j.state)}</td><td>${j.attempts}</td>
+      <td>${quando(j.created)}</td><td>${quando(j.updated)}</td><td><button data-trace="${esc(j.id)}">trace</button>
+      ${["queued","running","waiting_approval"].includes(j.state) ? `<button data-cancel="${esc(j.id)}">cancelar</button>` : ""}</td></tr>`).join("") +
+      `</table><div id="trace"></div>`;
+  },
+  async rotinas() {
+    const d = await get("/api/rotinas");
+    return d.rotinas.map(r => `<div class="card"><b>${esc(r.title)}</b> <span class="meta">${esc(r.id)} · ${esc(r.cron || ("evento " + (r.event||{}).type))}
+      · ${r.enabled ? "ligada" : "desligada"} · entrega ${esc(r.deliver)} · último ${quando(r.estado.last_run)} ${esc(r.estado.last_status || "")}
+      ${r.estado.fails ? " · falhas " + r.estado.fails : ""}</span> <button data-rodar="${esc(r.id)}">rodar agora</button>
+      ${r.estado.last_result ? `<pre>${esc(r.estado.last_result)}</pre>` : ""}</div>`).join("") +
+      (d.erros.length ? `<pre>${esc(JSON.stringify(d.erros, null, 2))}</pre>` : "");
+  },
+  async sistema() {
+    const h = await get("/api/health");
+    return `<div class="card"><b>${h.ok ? "Tudo certo" : "Atenção"}</b><span class="meta"> · scheduler ${quando(h.scheduler_ultimo_tick)}</span>
+      <table><tr><td>Ollama</td><td>${h.ollama ? "online" : "parado"}</td></tr>
+      <tr><td>VRAM</td><td>${h.vram_mb ?? "-"} / ${h.vram_total_mb ?? "-"} MB</td></tr>
+      <tr><td>Modelo residente</td><td>${esc(h.router.residente || "nenhum")} (principal ${esc(h.router.principal)}, cargas ${h.router.cargas})</td></tr>
+      ${h.discos.map(d => `<tr><td>Disco ${esc(d.disco)}</td><td>${d.livre_gb} GB livres de ${d.total_gb}</td></tr>`).join("")}</table>
+      ${h.alertas.map(a => `<div class="card ${esc(a.nivel)}">${esc(a.msg)}</div>`).join("")}</div>`;
+  },
+  async eventos() {
+    const d = await get("/api/atividade?n=200");
+    return `<table>` + d.eventos.reverse().map(e => `<tr><td class="meta">${esc(e.ts)}</td><td>${esc(e.tipo)}</td>
+      <td><code>${esc(JSON.stringify(Object.fromEntries(Object.entries(e).filter(([k]) => !["ts","tipo"].includes(k)))))}</code></td></tr>`).join("") + `</table>`;
+  },
+};
+async function trace(id) {
+  const d = await get(`/api/jobs/${id}/trace`);
+  $("#trace").innerHTML = `<h3>Trace ${esc(id)} · ${esc(d.job.bot)} · ${esc(d.job.state)}</h3>` +
+    d.mensagens.map(m => `<div class="msg ${esc(m.role)}"><span class="meta">${esc(m.role)}${m.tool_name ? " · " + esc(m.tool_name) : ""}
+      ${m.tool_calls.length ? " → " + esc(m.tool_calls.join(", ")) : ""}</span><pre>${esc(m.content)}</pre></div>`).join("") +
+    (d.filhos.length ? `<p>Delegados: ${d.filhos.map(f => esc(f.id + " (" + f.bot + ", " + f.state + ")")).join(", ")}</p>` : "") +
+    `<details><summary>Eventos (${d.eventos.length})</summary><pre>${esc(d.eventos.map(e => e.ts + " " + e.tipo + " " + (e.tool || "")).join("\n"))}</pre></details>`;
+}
+async function abrir(t) {
+  aba = t;
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
+  $("#v").innerHTML = await V[t]();
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.t) abrir(b.dataset.t);
+  else if (b.id === "lerTudo") { await post("/api/notificacoes/lidas"); abrir("alertas"); }
+  else if (b.dataset.trace) trace(b.dataset.trace);
+  else if (b.dataset.cancel) { await post(`/api/jobs/${b.dataset.cancel}/cancel`); abrir("jobs"); }
+  else if (b.dataset.rodar) { b.disabled = true; await post(`/api/rotinas/${b.dataset.rodar}/rodar`); setTimeout(() => abrir("rotinas"), 800); }
+});
+new EventSource("/eventos").onmessage = m => {
+  try { const d = JSON.parse(m.data); if ((d.tipo === "notificacao" && aba === "alertas") || (d.tipo === "job" && aba === "jobs" && !$("#trace")?.innerHTML)) abrir(aba); } catch (_) {}
+};
+abrir(location.hash.slice(1) || "alertas");
+</script>
+</body>
+</html>

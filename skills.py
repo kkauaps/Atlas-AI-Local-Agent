@@ -124,6 +124,7 @@ def _salvar_print(img, titulo=""):
         th.thumbnail((1280, 800))
         ts = time.strftime("%Y%m%d_%H%M%S")
         th.convert("RGB").save(os.path.join(core.PRINTS_DIR, f"{ts}.jpg"), "JPEG", quality=55)
+        emitir("print_saved", {"arquivo": f"{ts}.jpg", "titulo": str(titulo or "")[:120]})
         arqs = sorted(glob.glob(os.path.join(core.PRINTS_DIR, "*.jpg")))
         for old in arqs[:-40]:                 # mantém os 40 prints mais recentes
             try:

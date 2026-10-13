@@ -1,0 +1,1 @@
+{"id":"resumo_noturno","title":"Resumo do dia","bot":"atlas","cron":"30 23 * * *","action":"daily_summary","prompt":"resumo_diario","deliver":"changed_only","propose_memory":true}

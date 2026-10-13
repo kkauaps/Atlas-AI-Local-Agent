@@ -15,6 +15,8 @@ from . import db, obs
 ESTADOS = ("queued", "running", "waiting_approval", "done", "failed", "cancelled")
 WORKERS = {"gpu": 1, "io": 2}
 MAX_TENTATIVAS = 2
+LOTE_MAX_ESPERA_S = 120          # agrupa jobs do mesmo modelo, mas nunca deixa o mais antigo esperar mais que isso
+ao_terminar = []                 # callbacks(job, estado, result) - ex.: scheduler entrega o resultado da rotina
 _novo = threading.Condition()
 _threads = []
 _parar = threading.Event()
@@ -122,14 +124,48 @@ def recuperar():
 def _pegar(kind):
     """Reserva atomicamente o próximo job da fila deste tipo."""
     with db._lock:
-        rows, _ = db.executar("SELECT id FROM jobs WHERE state='queued' AND kind=? AND cancel=0 "
-                              "ORDER BY created LIMIT 1", (kind,))
+        rows, _ = db.executar("SELECT id, bot, created FROM jobs WHERE state='queued' AND kind=? AND cancel=0 "
+                              "ORDER BY created LIMIT 20", (kind,))
         if not rows:
             return None
-        jid = rows[0]["id"]
+        jid = _escolher(rows) if kind == "gpu" else rows[0]["id"]
         _, n = db.executar("UPDATE jobs SET state='running', attempts=attempts+1, updated=? WHERE id=? AND state='queued'",
                            (time.time(), jid))
         return get(jid) if n else None
+
+
+def _modelo_do_bot(bid):
+    try:
+        from . import bots, router
+        return router.resolver(bots.obter(bid)["model"])
+    except Exception:
+        return None
+
+
+def _escolher(rows):
+    """Lote por modelo: se o mais antigo não espera há muito, prefere um job cujo modelo já está na GPU
+    (evita trocar de modelo a cada job, cada troca custa segundos)."""
+    from . import router
+    import core
+    atual = router.residente()
+    if not atual or time.time() - rows[0]["created"] > LOTE_MAX_ESPERA_S:
+        return rows[0]["id"]
+    for r in rows:
+        m = _modelo_do_bot(r["bot"])
+        if m and core.mesmo_modelo(m, atual):
+            return r["id"]
+    return rows[0]["id"]
+
+
+def _avisar_fim(jid, estado, result):
+    if not ao_terminar:
+        return
+    job = get(jid)
+    for cb in list(ao_terminar):
+        try:
+            cb(job, estado, result)
+        except Exception as e:
+            obs.evento("callback_erro", id=jid, erro=type(e).__name__)
 
 
 def _finalizar(jid, estado, result=None):
@@ -137,6 +173,7 @@ def _finalizar(jid, estado, result=None):
                 (estado, json.dumps(result, ensure_ascii=False) if result is not None else None, time.time(), jid))
     obs.evento("job_" + estado, id=jid)
     _emitir(jid, estado, {"result": result if isinstance(result, (str, type(None))) else None})
+    _avisar_fim(jid, estado, result)
 
 
 def processar(job, runner):

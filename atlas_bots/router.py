@@ -111,7 +111,12 @@ def chat(model_spec, messages, tools=None, gpu=True, options=None, timeout=300, 
             return r
     r = _chat_local(model_spec, messages, tools, gpu, options, timeout, keep_alive)
     if not r["ok"] and fb:
-        return _via_api(fb, model_spec, messages, tools) or r
+        # só troca pra API depois de 2 falhas locais seguidas (a primeira pode ser só o modelo carregando)
+        obs.evento("local_falhou", tentativa=1, erro=r.get("erro"))
+        r = _chat_local(model_spec, messages, tools, gpu, options, timeout, keep_alive)
+        if not r["ok"]:
+            obs.evento("local_falhou", tentativa=2, erro=r.get("erro"))
+            return _via_api(fb, model_spec, messages, tools) or r
     return r
 
 

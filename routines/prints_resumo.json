@@ -1,0 +1,1 @@
+{"id":"prints_resumo","title":"Resumo da tela","bot":"visao","event":{"type":"print_saved"},"prompt":"resumir_prints","inputs":{"periodo":"a última hora"},"deliver":"changed_only","enabled":false}

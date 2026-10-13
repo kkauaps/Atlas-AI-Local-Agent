@@ -30,5 +30,5 @@ def executores():
 
 
 def carregar():
-    from . import web, vision, code, outbound  # noqa: F401  (registram no import)
+    from . import web, vision, code, outbound, browser  # noqa: F401  (registram no import)
     return TOOLS

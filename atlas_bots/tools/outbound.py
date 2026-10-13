@@ -63,3 +63,15 @@ def email_draft(a, ctx):
     eml = f"To: {para}\nSubject: {assunto}\nContent-Type: text/plain; charset=utf-8\n\n{a.get('body') or ''}\n"
     p = _salvar("email", "mensagem.eml", eml)
     return {"ok": True, "saved": os.path.relpath(p, BASE_DIR), "sent": False, "meta": json.dumps({"to": para})}
+
+
+@tool("memory_propose", "Propose a durable memory for the user to approve (saved only after approval).",
+      {"content": {"type": "string"}, "type": {"type": "string"}, "tags": {"type": "array", "items": {"type": "string"}},
+       "importance": {"type": "integer"}}, ["content"], outbound=True)
+def memory_propose(a, ctx):
+    import ferramentas
+    args = {"content": str(a.get("content") or "")[:4000], "type": a.get("type") or "note",
+            "tags": a.get("tags") or ["diario"], "importance": a.get("importance") or 2}
+    r = ferramentas.executar("save_memory", args, {"chat_id": None, "modelo": "atlas-bots", "projeto": None,
+                                                    "cfg": None, "permitidas": None})
+    return r["resultado"] if r["ok"] else {"error": (r["resultado"] or {}).get("error", "save failed")}

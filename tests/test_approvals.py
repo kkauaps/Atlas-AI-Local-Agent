@@ -8,7 +8,7 @@ from atlas_bots import approvals, jobs, orchestrator
 
 class TestApprovals(u.Base):
     def test_guard_exige_aprovacao_dos_args_exatos(self):
-        aid = approvals.request_approval(None, "x_post_draft", {"text": "oi"}, "oi")
+        aid = approvals.request_approval("job_x", "x_post_draft", {"text": "oi"}, "oi")
         self.assertFalse(approvals.guard("x_post_draft", {"text": "oi"}, aid))     # pendente
         approvals.decide(aid, True)
         self.assertFalse(approvals.guard("x_post_draft", {"text": "outro"}, aid))  # args mudaram

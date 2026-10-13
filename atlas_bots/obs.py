@@ -82,6 +82,26 @@ def evento(tipo, **dados):
     return item
 
 
+def diario(linha, quando=None):
+    """Log diário legível em logs/AAAA-MM-DD.md (resumido à noite em memória, com aprovação)."""
+    quando = quando or time.localtime()
+    try:
+        with _lock:
+            os.makedirs(LOG_DIR, exist_ok=True)
+            with open(os.path.join(LOG_DIR, time.strftime("%Y-%m-%d", quando) + ".md"), "a", encoding="utf-8") as f:
+                f.write(f"- {time.strftime('%H:%M', quando)} {redigir(linha, 400)}\n")
+    except Exception:
+        pass
+
+
+def ler_diario(dia):
+    try:
+        with open(os.path.join(LOG_DIR, f"{dia}.md"), encoding="utf-8") as f:
+            return f.read()
+    except OSError:
+        return ""
+
+
 def ultimos(n=100):
     try:
         with open(_arquivo(), encoding="utf-8") as f:

@@ -1,0 +1,1 @@
+{"id":"vigia_saude","title":"Saúde do sistema","bot":"vigia","cron":"*/10 * * * *","action":"health","deliver":"changed_only"}
