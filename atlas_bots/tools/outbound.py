@@ -18,6 +18,14 @@ DRAFTS = os.path.join(BASE_DIR, "drafts")
 _BRANCH = re.compile(r"^[A-Za-z0-9._/\-]{1,100}$")
 
 
+def _mostrar(p):
+    """Caminho do rascunho para mostrar (relativo quando der; outro disco no Windows não dá)."""
+    try:
+        return os.path.relpath(p, BASE_DIR).replace("\\", "/")
+    except ValueError:
+        return p
+
+
 def _salvar(tipo, nome, conteudo):
     d = os.path.join(DRAFTS, tipo)
     os.makedirs(d, exist_ok=True)
@@ -50,7 +58,7 @@ def x_post_draft(a, ctx):
         return {"error": "text must be 1-280 chars"}
     texto = texto.replace("\u2014", ",")                     # sem travessão
     p = _salvar("x", "post.md", (f"reply_to: {a['reply_to']}\n\n" if a.get("reply_to") else "") + texto + "\n")
-    return {"ok": True, "saved": os.path.relpath(p, BASE_DIR), "published": False}
+    return {"ok": True, "saved": _mostrar(p), "published": False}
 
 
 @tool("email_draft", "Prepare an email. Requires approval; saves the approved draft as .eml, never sends.",
@@ -62,7 +70,7 @@ def email_draft(a, ctx):
         return {"error": "invalid to/subject"}
     eml = f"To: {para}\nSubject: {assunto}\nContent-Type: text/plain; charset=utf-8\n\n{a.get('body') or ''}\n"
     p = _salvar("email", "mensagem.eml", eml)
-    return {"ok": True, "saved": os.path.relpath(p, BASE_DIR), "sent": False, "meta": json.dumps({"to": para})}
+    return {"ok": True, "saved": _mostrar(p), "sent": False, "meta": json.dumps({"to": para})}
 
 
 @tool("memory_propose", "Propose a durable memory for the user to approve (saved only after approval).",
