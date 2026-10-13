@@ -32,6 +32,7 @@ class TestApprovals(u.Base):
     def test_job_pausa_e_retoma(self):
         self.bot(id="social", approval=["x_post_draft"])
         executado = []
+        antigo = orchestrator.EXECUTORES.get("x_post_draft")
         orchestrator.EXECUTORES["x_post_draft"] = {
             "schema": {"type": "function", "function": {"name": "x_post_draft", "parameters": {}}},
             "fn": lambda a, c: executado.append(a) or {"ok": True}}
@@ -55,7 +56,7 @@ class TestApprovals(u.Base):
             self.assertEqual(j["result"], "postado")
             self.assertEqual(len(chat.chamadas), 2)               # não chamou o modelo de novo para a mesma tool
         finally:
-            orchestrator.EXECUTORES.pop("x_post_draft", None)
+            orchestrator.EXECUTORES["x_post_draft"] = antigo
 
     def test_job_rejeitado_recebe_rejected(self):
         self.bot(id="dev", approval=["git_push"])

@@ -30,7 +30,8 @@ class TestRouter(u.Base):
         self.p = [mock.patch.object(router.requests, "post", side_effect=post),
                   mock.patch.object(router, "vram_mb", return_value=4000),
                   mock.patch.object(router, "principal", return_value="qwen2.5:7b"),
-                  mock.patch.object(core, "descarregar_modelos")]
+                  mock.patch.object(core, "descarregar_modelos"),
+                  mock.patch.object(core, "modelo_instalado", return_value=True)]
         for x in self.p:
             x.start()
         self.descarregar = core.descarregar_modelos

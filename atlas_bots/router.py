@@ -14,7 +14,9 @@ import subprocess
 import requests
 
 import core
-from . import obs
+from . import obs, apimodel
+
+CTX_API_CHARS = 8000 * 4            # acima de ~8k tokens vale mandar pra API (se não for privado)
 
 CTX_MAX = 8192
 CTX_PADRAO = 4096
@@ -41,11 +43,18 @@ def principal() -> str:
 
 
 def resolver(model_spec) -> str:
-    """bot.model -> tag do Ollama. Aceita str, {"local": ...} e "default" (= modelo escolhido na interface)."""
+    """bot.model -> tag do Ollama. Aceita str, {"local": ...} e "default" (= modelo escolhido na interface).
+    Se o modelo do bot não estiver instalado, cai no principal (não baixa nada sozinho)."""
     if isinstance(model_spec, dict):
         model_spec = model_spec.get("local") or "default"
     if not model_spec or model_spec == "default":
         return principal()
+    try:
+        if not core.modelo_instalado(str(model_spec)):
+            obs.evento("modelo_ausente", modelo=model_spec, usando=principal())
+            return principal()
+    except Exception:
+        pass
     return str(model_spec)
 
 
@@ -73,8 +82,40 @@ def _trocar(modelo):
         _estado["residente"] = None
 
 
-def chat(model_spec, messages, tools=None, gpu=True, options=None, timeout=300, keep_alive=None):
-    """Uma resposta (sem stream). Devolve {"ok", "message", "modelo", "erro"}."""
+def _api_ok(model_spec, messages, permitir_api):
+    fb = model_spec.get("fallback") if isinstance(model_spec, dict) else None
+    if not permitir_api or not (isinstance(fb, str) and fb.startswith("api:")) or not apimodel.configurado():
+        return None
+    if not model_spec.get("allow_api_private") and apimodel.privado(messages):
+        return None
+    return fb
+
+
+def _via_api(fb, model_spec, messages, tools):
+    try:
+        m = apimodel.chat(fb, messages, tools, permitir_privado=bool(model_spec.get("allow_api_private")))
+        return {"ok": True, "message": m, "modelo": fb, "erro": None, "api": True}
+    except Exception as e:
+        obs.evento("api_recusada", motivo=str(e)[:120])
+        return None
+
+
+def chat(model_spec, messages, tools=None, gpu=True, options=None, timeout=300, keep_alive=None, permitir_api=True):
+    """Uma resposta (sem stream). Devolve {"ok", "message", "modelo", "erro"}.
+    Híbrido: usa a API (model.fallback = "api:...") quando forçado (model.force_api), quando a conversa passa
+    de ~8k tokens ou quando o local falha, e só se nada na conversa for privado e houver orçamento no dia."""
+    fb = _api_ok(model_spec, messages, permitir_api)
+    if fb and (model_spec.get("force_api") or sum(len(str(m.get("content") or "")) for m in messages) > CTX_API_CHARS):
+        r = _via_api(fb, model_spec, messages, tools)
+        if r:
+            return r
+    r = _chat_local(model_spec, messages, tools, gpu, options, timeout, keep_alive)
+    if not r["ok"] and fb:
+        return _via_api(fb, model_spec, messages, tools) or r
+    return r
+
+
+def _chat_local(model_spec, messages, tools, gpu, options, timeout, keep_alive):
     modelo = resolver(model_spec)
     opts = dict(options or {})
     opts["num_ctx"] = max(512, min(int(opts.get("num_ctx") or CTX_PADRAO), CTX_MAX))
