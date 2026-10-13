@@ -1,0 +1,15 @@
+{
+  "servers": {
+    "exemplo_stdio": {
+      "disabled": true,
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "D:\\atlas_sandbox"],
+      "allow": ["read_file", "list_directory"]
+    },
+    "exemplo_http": {
+      "disabled": true,
+      "url": "https://exemplo.com/mcp",
+      "headers": {"Authorization": "Bearer ${EXEMPLO_MCP_TOKEN}"}
+    }
+  }
+}

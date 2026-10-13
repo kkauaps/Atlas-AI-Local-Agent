@@ -12,7 +12,7 @@ import secrets
 from . import db, obs
 
 # ferramentas que sempre exigem aprovação (as de fora entram nas próximas fases)
-OUTBOUND = {"memory_propose", "x_post_draft", "email_draft", "git_push", "merge", "shell_write", "delete_file", "send_message"}
+OUTBOUND = {"memory_propose", "x_post", "email_send", "code_agent", "x_post_draft", "email_draft", "git_push", "merge", "shell_write", "delete_file", "send_message"}
 EXPIRA_S = 7 * 86400
 
 
@@ -22,7 +22,14 @@ def hash_args(tool, args) -> str:
 
 
 def precisa(tool, bot=None) -> bool:
-    return tool in OUTBOUND or tool.startswith("mcp.") or (bot is not None and tool in (bot.get("approval") or []))
+    """Exige aprovação: lista fixa, ferramentas MCP fora do "allow" do mcp.json, ou o que o bot listar."""
+    if tool in OUTBOUND or tool.startswith("mcp.") or (bot is not None and tool in (bot.get("approval") or [])):
+        return True
+    if tool.startswith("mcp__"):
+        from .tools import TOOLS
+        t = TOOLS.get(tool)
+        return t is None or t.get("outbound", True)
+    return False
 
 
 def request_approval(job_id, tool, args, preview="") -> str:
@@ -87,7 +94,13 @@ def decide(aid, ok) -> dict:
 def _executar_sem_job(a):
     """Pedido criado fora de um job (rotina, chat direto): aprovado roda na hora, pelo mesmo guard."""
     from .orchestrator import EXECUTORES
-    ex = EXECUTORES.get(a["tool"])
+    from .tools import TOOLS
+    ex = EXECUTORES.get(a["tool"]) or TOOLS.get(a["tool"])
+    if not ex:
+        import ferramentas
+        if a["tool"] in ferramentas.FUNCOES:              # escrita de memória proposta por um bot
+            ctx = {"chat_id": None, "modelo": "atlas-bots", "projeto": None, "cfg": None, "permitidas": None}
+            ex = {"fn": lambda args, c: ferramentas.executar(a["tool"], args, ctx)["resultado"]}
     if not ex:
         return {"error": "no executor"}
     if not guard(a["tool"], a["args"], a["id"]):

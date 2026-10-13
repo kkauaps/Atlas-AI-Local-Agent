@@ -3,7 +3,10 @@ import os
 
 from flask import jsonify, request, send_from_directory
 
-from . import BASE_DIR, bots, jobs, approvals, orchestrator, router, skillmd, obs, scheduler, health
+import json
+import threading
+
+from . import BASE_DIR, bots, jobs, approvals, orchestrator, router, skillmd, obs, scheduler, health, mcp_client
 
 
 def _corpo():
@@ -108,6 +111,31 @@ def registrar(app):
             return jsonify({"ok": False, "erro": "rotina desconhecida"}), 404
         return jsonify({"ok": True, "job": scheduler.disparar(r, "manual")})
 
+    @app.route("/bots")
+    def bots_page():
+        return send_from_directory(os.path.join(BASE_DIR, "web"), "bots.html")
+
+    @app.route("/api/bots/<bid>/memoria", methods=["GET", "POST"])
+    def api_bot_memoria(bid):
+        try:
+            b = bots.obter(bid)
+        except bots.ErroBot as e:
+            return jsonify({"ok": False, "erro": str(e)}), 404
+        if request.method == "GET":
+            return jsonify({"id": bid, "memory": b["memory"]})
+        try:
+            return jsonify({"ok": True, "memory": salvar_memoria_bot(bid, _corpo())})
+        except (ValueError, OSError) as e:
+            return jsonify({"ok": False, "erro": str(e)[:200]}), 400
+
+    @app.route("/api/mcp", methods=["GET", "POST"])
+    def api_mcp():
+        if request.method == "POST":
+            mcp_client.carregar()
+        return jsonify({"servidores": mcp_client.carregar.estado,
+                        "ferramentas": [{"nome": n, "aprovacao": orchestrator.reg.TOOLS[n]["outbound"]}
+                                        for n in mcp_client.ferramentas_mcp()]})
+
     @app.route("/api/hooks/<rid>", methods=["POST"])
     def api_hook(rid):
         import hmac
@@ -121,7 +149,30 @@ def registrar(app):
         return jsonify({"ok": True, "job": scheduler.disparar(r, "webhook", _corpo())})
 
 
+def salvar_memoria_bot(bid, d):
+    """Grava memory.projects/scope/write no bots/<id>.json (validado antes de escrever)."""
+    caminho = os.path.join(bots.BOTS_DIR, f"{bid}.json")
+    with open(caminho, encoding="utf-8") as f:
+        cfg = json.load(f)
+    projs = d.get("projects") or []
+    if isinstance(projs, str):
+        projs = [p.strip() for p in projs.split(",")]
+    cfg["memory"] = {"projects": [str(p)[:64] for p in projs if str(p).strip()][:20],
+                     "scope": d.get("scope", "inherit"), "write": d.get("write", "propose")}
+    if cfg["memory"]["write"] not in ("propose", "none"):
+        raise ValueError("write deve ser propose ou none")
+    novo = bots.validar(cfg)
+    tmp = caminho + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(json.dumps(cfg, ensure_ascii=False) + "\n")
+    os.replace(tmp, caminho)
+    bots.carregar(forcar=True)
+    obs.evento("bot_memoria", bot=bid, scope=novo["memory"]["scope"], projetos=len(novo["memory"]["projects"]))
+    return novo["memory"]
+
+
 def iniciar():
     obs.limpar_antigos()
+    threading.Thread(target=mcp_client.carregar, name="atlas-mcp", daemon=True).start()
     scheduler.iniciar()                       # registra o callback antes dos workers pegarem jobs
     jobs.iniciar(orchestrator.runner)

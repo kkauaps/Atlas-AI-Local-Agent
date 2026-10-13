@@ -14,6 +14,7 @@ import webbrowser
 import core
 
 URL = "http://127.0.0.1:5005"
+_icone = {"obj": None}
 
 
 def abrir(*_):
@@ -52,7 +53,9 @@ def _tray():
             pystray.MenuItem("Pause / Resume", _alternar_ativo),
             pystray.MenuItem("Quit", lambda icon, item: (icon.stop(), os._exit(0))),
         )
-        pystray.Icon("Atlas", _icone_img(), "Atlas - AI Local Agent", menu).run()
+        icone = pystray.Icon("Atlas", _icone_img(), "Atlas - AI Local Agent", menu)
+        _icone["obj"] = icone
+        icone.run()
     except Exception:
         pass
 
@@ -74,6 +77,18 @@ def _hotkey():
                 abrir()
     except Exception:
         pass
+
+
+def notificar(titulo, texto) -> bool:
+    """Toast do Windows pelo ícone da bandeja (alertas do vigia/rotinas). False se não houver ícone."""
+    icone = _icone["obj"]
+    if icone is None:
+        return False
+    try:
+        icone.notify(str(texto or "")[:250], str(titulo or "Atlas")[:60])
+        return True
+    except Exception:
+        return False
 
 
 def iniciar():

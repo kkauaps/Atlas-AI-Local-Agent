@@ -14,7 +14,7 @@ import secrets
 import threading
 import datetime as dt
 
-from . import BASE_DIR, db, obs, jobs, bots, skillmd, approvals, health
+from . import BASE_DIR, db, obs, jobs, bots, skillmd, approvals, health, envfile
 
 ROTINAS_DIR = os.path.join(BASE_DIR, "routines")
 TICK_S = 30
@@ -207,6 +207,12 @@ def notificar(rid, titulo, corpo, nivel="info"):
         skills.emitir("notificacao", {"id": nid, "titulo": titulo, "corpo": corpo[:300], "nivel": nivel})
     except Exception:
         pass
+    if envfile.get("ATLAS_TOAST", "1") != "0":
+        try:
+            import bandeja
+            bandeja.notificar(titulo, corpo)
+        except Exception:
+            pass
     return nid
 
 

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Atlas - Bots</title>
+<link rel="icon" href="/static/favicon.png">
+<link rel="stylesheet" href="/static/ui.css">
+<style>
+ body{padding:24px;max-width:960px;margin:0 auto}
+ .card{border:1px solid var(--line,#333);border-radius:10px;padding:12px 14px;margin:10px 0}
+ .meta{opacity:.7;font-size:12px} label{display:inline-block;margin:6px 12px 6px 0}
+ input[type=text]{min-width:320px} .ok{color:#5a5}.erro{color:#d55}
+</style>
+</head>
+<body>
+<header><a href="/">&larr; Atlas</a> <h2 style="display:inline;margin-left:12px">Bots e memória</h2>
+ <a href="/atividade" style="margin-left:16px">Atividade</a> <a href="/aprovacoes" style="margin-left:12px">Aprovações</a></header>
+<p class="meta">Defina quais projetos da memória cada bot enxerga. Com projetos definidos e escopo diferente de "all",
+o bot só busca e escreve nesses projetos. "propose" = toda escrita na memória passa pela aprovação; "none" = só leitura.</p>
+<datalist id="projs"></datalist>
+<div id="lista"></div>
+<h3>MCP</h3><div id="mcp" class="card"></div>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const opt = (v, atual) => `<option ${v === atual ? "selected" : ""}>${v}</option>`;
+async function carregar() {
+  const [d, p] = await Promise.all([fetch("/api/bots").then(r => r.json()), fetch("/api/projetos").then(r => r.json()).catch(() => ({}))]);
+  const nomes = (p.projetos || p.items || p || []).map ? (p.projetos || p.items || []).map(x => x.nome || x.name || x.id || x) : [];
+  $("#projs").innerHTML = nomes.map(n => `<option value="${esc(n)}">`).join("");
+  const mems = await Promise.all(d.bots.map(b => fetch(`/api/bots/${b.id}/memoria`).then(r => r.json())));
+  $("#lista").innerHTML = d.bots.map((b, i) => { const m = mems[i].memory; return `
+   <div class="card" data-id="${esc(b.id)}"><b>${esc(b.name)}</b> <span class="meta">${esc(b.id)} · ${esc(b.model)} · ${esc(b.description)}</span><br>
+    <label>Projetos <input type="text" list="projs" class="p" value="${esc(m.projects.join(", "))}" placeholder="vazio = todos"></label>
+    <label>Escopo <select class="s">${["exact","inherit","tree","all"].map(v => opt(v, m.scope)).join("")}</select></label>
+    <label>Escrita <select class="w">${["propose","none"].map(v => opt(v, m.write)).join("")}</select></label>
+    <button class="salvar">Salvar</button> <span class="st"></span></div>`; }).join("");
+  const mc = await fetch("/api/mcp").then(r => r.json());
+  $("#mcp").innerHTML = `<button id="mcpReload">Recarregar mcp.json</button>` +
+    Object.entries(mc.servidores).map(([n, s]) => `<div>${esc(n)}: ${s.ok ? "ok, " + s.tools.length + " ferramentas" : '<span class="erro">' + esc(s.erro) + "</span>"}</div>`).join("") +
+    (mc.ferramentas.length ? `<div class="meta">${mc.ferramentas.map(f => esc(f.nome) + (f.aprovacao ? " (aprovação)" : " (livre)")).join(" · ")}</div>` : '<div class="meta">Nenhum servidor MCP configurado (mcp.json).</div>');
+}
+document.addEventListener("click", async e => {
+  if (e.target.id === "mcpReload") { e.target.disabled = true; await fetch("/api/mcp", {method: "POST"}); return carregar(); }
+  if (!e.target.classList.contains("salvar")) return;
+  const c = e.target.closest(".card"), st = c.querySelector(".st");
+  const r = await fetch(`/api/bots/${c.dataset.id}/memoria`, {method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({projects: c.querySelector(".p").value, scope: c.querySelector(".s").value, write: c.querySelector(".w").value})});
+  const d = await r.json();
+  st.className = "st " + (d.ok ? "ok" : "erro"); st.textContent = d.ok ? "salvo" : d.erro;
+});
+carregar();
+</script>
+</body>
+</html>
