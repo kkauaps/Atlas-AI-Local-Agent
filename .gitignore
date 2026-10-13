@@ -53,3 +53,4 @@ routine_state*
 browser_profile/
 playwright/
 drafts/
+!__init__.py
