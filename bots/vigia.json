@@ -1,0 +1,1 @@
+{"id":"vigia","name":"Vigia","kind":"io","description":"saude do sistema e rotinas (briefing, avisos so quando muda)","persona":"skills/personas/vigia.md","model":{"local":"default"},"tools":["search_memories","use_skill"],"memory":{"projects":[],"scope":"all","write":"none"},"approval":[],"max_rounds":3}

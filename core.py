@@ -511,6 +511,8 @@ def iniciar_ollama_detalhe(espera: float = 12.0) -> dict:
     env = dict(os.environ)
     env["OLLAMA_FLASH_ATTENTION"] = "1"
     env["OLLAMA_KV_CACHE_TYPE"] = "q8_0"
+    env.setdefault("OLLAMA_MAX_LOADED_MODELS", "1")   # um modelo residente (6 GB de VRAM)
+    env.setdefault("OLLAMA_NUM_PARALLEL", "1")
     try:
         subprocess.Popen([exe, "serve"], creationflags=_NO_WIN, env=env,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

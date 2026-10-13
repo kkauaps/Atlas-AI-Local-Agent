@@ -1,0 +1,1 @@
+{"id":"social","name":"Social","kind":"gpu","description":"rascunha posts; nunca publica sem aprovacao","persona":"skills/personas/social.md","model":{"local":"default"},"tools":["search_memories","use_skill"],"memory":{"projects":[],"scope":"inherit","write":"none"},"approval":["x_post_draft","email_draft"],"max_rounds":3}

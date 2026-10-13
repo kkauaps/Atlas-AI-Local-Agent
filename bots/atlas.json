@@ -1,0 +1,1 @@
+{"id":"atlas","name":"Atlas","kind":"gpu","description":"generalista e porta de entrada; conversa, memoria e delega","persona":"skills/personas/atlas.md","model":{"local":"default"},"tools":["@ferramentas","use_skill"],"memory":{"projects":[],"scope":"all","write":"propose"},"approval":[],"max_rounds":4,"can_delegate":true}

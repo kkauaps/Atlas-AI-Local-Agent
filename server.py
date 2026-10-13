@@ -29,6 +29,7 @@ import ajustes
 import contexto
 import ferramentas
 import urllib.parse
+import atlas_bots.api as bots_api
 
 WEB_DIR = os.path.join(core.BASE_DIR, "web")
 
@@ -46,6 +47,7 @@ HOST, PORT = "127.0.0.1", _porta()
 
 app = Flask(__name__, static_folder=None)
 memapi.registrar(app, HOST, PORT)       # API de memória /v1 para qualquer IA
+bots_api.registrar(app)                 # bots, jobs e aprovações (atlas_bots)
 
 SYSTEM_BASE = (
     "Você é o assistente pessoal local do {nome}. Tom calmo, natural e direto. "
@@ -98,6 +100,11 @@ def grafo_page():
 @app.route("/memorias")
 def memorias_page():
     return send_from_directory(WEB_DIR, "memorias.html")
+
+
+@app.route("/aprovacoes")
+def aprovacoes_page():
+    return send_from_directory(WEB_DIR, "aprovacoes.html")
 
 
 @app.route("/static/<path:nome>")
@@ -1164,6 +1171,7 @@ def iniciar():
     memapi.token()                           # garante o token da API (o MCP lê do config.json)
     skills.iniciar()
     lembretes.iniciar()
+    bots_api.iniciar()                       # workers da fila de jobs (1 GPU + 2 I/O)
     bandeja.iniciar()
     if core.habilidade("documentos") and cofre.disponivel():
         docs.reindexar_async(forcar=False)   # indexa os documentos em segundo plano no start

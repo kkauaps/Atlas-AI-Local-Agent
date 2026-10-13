@@ -39,3 +39,16 @@ _*.py
 _*.js
 _*.txt
 *.tmp
+
+# atlas_bots (fila, logs, segredos)
+.env
+.env.*
+!.env.example
+jobs.db
+jobs.db-*
+logs/
+mcp.json
+approvals*
+routine_state*
+browser_profile/
+playwright/
