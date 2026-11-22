@@ -4,6 +4,9 @@ import { theme } from "../theme";
 import { wordFrame } from "../time";
 import { Enter, Breathe, Pill, Check, Cross, useSpring } from "../components/Motion";
 import { BgMesh, Bokeh, Snow, Flash } from "../components/Layers";
+import { Sequence } from "remotion";
+import { BlurBg, Card } from "../components/Media";
+import { segStart } from "../time";
 
 const cl = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 const H: React.CSSProperties = { fontFamily: theme.fonts.display, fontWeight: 900, letterSpacing: "-0.035em", lineHeight: 1.0, color: theme.colors.text, textAlign: "center" };
@@ -13,38 +16,28 @@ const Col: React.FC<{ children: React.ReactNode; top?: number; gap?: number }> =
 type P = { start: number };
 const W = (seg: number, w: string, start: number, nth = 0) => wordFrame(seg, w, nth) - start;
 
-/* 0 — HOOK: camera viewfinder */
+/* 0 — HOOK: real footage */
 export const Hook: React.FC<P> = ({ start }) => {
   const f = useCurrentFrame();
   const shot = W(0, "foto", start);
-  const br = useSpring(0, theme.spring.snappy);
-  const focus = interpolate(f, [4, 22], [1.6, 1], { ...cl, easing: theme.ease.out });
-  const corners = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+  const br = useSpring(4, theme.spring.snappy);
   return (
     <AbsoluteFill>
-      <BgMesh a={theme.colors.accent} />
-      <Bokeh count={10} />
-      {corners.map(([dx, dy], i) => (
-        <div key={i} style={{ position: "absolute", width: 120, height: 120, left: dx > 0 ? 70 : undefined, right: dx < 0 ? 70 : undefined, top: dy > 0 ? 200 : undefined, bottom: dy < 0 ? 300 : undefined,
-          borderLeft: dx > 0 ? "8px solid #fff" : undefined, borderRight: dx < 0 ? "8px solid #fff" : undefined, borderTop: dy > 0 ? "8px solid #fff" : undefined, borderBottom: dy < 0 ? "8px solid #fff" : undefined,
-          transform: `translate(${-dx * 60 * (1 - br)}px, ${-dy * 60 * (1 - br)}px)`, opacity: br, borderRadius: 6 }} />
-      ))}
-      <div style={{ position: "absolute", top: 230, left: 120, display: "flex", alignItems: "center", gap: 14, fontFamily: theme.fonts.display, fontWeight: 800, fontSize: 40, color: "#fff", opacity: br }}>
-        <div style={{ width: 30, height: 30, borderRadius: 15, background: theme.colors.accent, opacity: Math.floor(f / 12) % 2 ? 0.3 : 1 }} /> REC
-      </div>
-      <div style={{ position: "absolute", left: 540 - 150, top: 790, width: 300, height: 300, border: "5px solid rgba(255,255,255,0.85)", borderRadius: 24, transform: `scale(${focus})`, opacity: interpolate(f, [4, 10, shot, shot + 4], [0, 1, 1, 0], cl) }} />
-      <Col top={430} gap={8}>
-        <Enter delay={W(0, "foge", start) - 3} cfg={theme.spring.snappy}><div style={{ ...H, fontSize: 150 }}>VOCÊ FOGE</div></Enter>
-        <Enter delay={W(0, "camera", start) - 3} cfg={theme.spring.bouncy}><div style={{ ...H, fontSize: 132, color: theme.colors.primary, textShadow: `0 0 60px ${theme.colors.glow}` }}>DA CÂMERA?</div></Enter>
+      <BlurBg src="vid/gancho.mp4" video />
+      <Card src="vid/gancho.mp4" video top={190} h={1010} zoomFrom={1.04} zoomTo={1.14} panX={0} pos="48% 40%">
+        <div style={{ position: "absolute", top: 36, left: 40, display: "flex", alignItems: "center", gap: 12, fontFamily: theme.fonts.display, fontWeight: 800, fontSize: 36, color: "#fff", opacity: br }}>
+          <div style={{ width: 26, height: 26, borderRadius: 13, background: theme.colors.accent, opacity: Math.floor(f / 12) % 2 ? 0.3 : 1 }} /> REC
+        </div>
+        {[[1, 1], [-1, 1], [1, -1], [-1, -1]].map(([dx, dy], i) => (
+          <div key={i} style={{ position: "absolute", width: 90, height: 90, left: dx > 0 ? 28 : undefined, right: dx < 0 ? 28 : undefined, top: dy > 0 ? 90 : undefined, bottom: dy < 0 ? 28 : undefined,
+            borderLeft: dx > 0 ? "6px solid #fff" : undefined, borderRight: dx < 0 ? "6px solid #fff" : undefined, borderTop: dy > 0 ? "6px solid #fff" : undefined, borderBottom: dy < 0 ? "6px solid #fff" : undefined,
+            transform: `translate(${-dx * 40 * (1 - br)}px, ${-dy * 40 * (1 - br)}px)`, opacity: br * 0.9, borderRadius: 4 }} />
+        ))}
+      </Card>
+      <Col top={1010} gap={0}>
+        <Enter delay={W(0, "foge", start) - 3} cfg={theme.spring.snappy}><div style={{ ...H, fontSize: 140, textShadow: "0 10px 40px rgba(0,0,0,.9)" }}>VOCÊ FOGE</div></Enter>
+        <Enter delay={W(0, "camera", start) - 3} cfg={theme.spring.bouncy}><div style={{ ...H, fontSize: 124, color: theme.colors.primary, textShadow: `0 0 50px ${theme.colors.glow}, 0 10px 40px rgba(0,0,0,.9)` }}>DA CÂMERA?</div></Enter>
       </Col>
-      <AbsoluteFill style={{ alignItems: "center", top: 1030 }}>
-        <Enter delay={W(0, "vamos", start) - 2} y={40} cfg={theme.spring.bouncy}>
-          <div style={{ position: "relative", background: "#fff", color: theme.colors.ink, fontFamily: theme.fonts.display, fontWeight: 800, fontSize: 56, padding: "26px 40px", borderRadius: 40 }}>
-            “Vamos tirar uma foto?”
-            <div style={{ position: "absolute", bottom: -22, left: 90, width: 0, height: 0, borderLeft: "22px solid transparent", borderRight: "22px solid transparent", borderTop: "26px solid #fff" }} />
-          </div>
-        </Enter>
-      </AbsoluteFill>
       <Flash at={shot + 2} len={10} />
     </AbsoluteFill>
   );
@@ -55,21 +48,24 @@ export const Pain: React.FC<P> = ({ start }) => {
   const items: [string, number][] = [["Foto só de cima", W(1, "foto", start)], ["Mão no queixo", W(1, "mao", start)], ["Apaga metade das fotos", W(1, "apaga", start)], ["A papada aparece", W(1, "papada", start)]];
   return (
     <AbsoluteFill>
-      <BgMesh a="#3B0A1E" b={theme.colors.accent} />
-      <Col top={250} gap={10}>
-        <Enter delay={2}><div style={{ ...H, fontSize: 96 }}>TODO FIM DE ANO</div></Enter>
-        <Enter delay={7}><div style={{ ...H, fontSize: 96, color: theme.colors.primary }}>É IGUAL:</div></Enter>
-        <div style={{ height: 40 }} />
+      <BlurBg src="img/triste.jpg" />
+      <Card src="img/triste.jpg" top={150} h={730} pos="52% 40%" zoomFrom={1.0} zoomTo={1.12} panX={-15}>
+        <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 34 }}>
+          <Enter delay={4}><div style={{ ...H, fontSize: 78, textShadow: "0 8px 30px rgba(0,0,0,.9)" }}>TODO FIM DE ANO</div></Enter>
+          <Enter delay={8}><div style={{ ...H, fontSize: 78, color: theme.colors.primary, textShadow: "0 8px 30px rgba(0,0,0,.9)" }}>É IGUAL:</div></Enter>
+        </AbsoluteFill>
+      </Card>
+      <AbsoluteFill style={{ top: 915, alignItems: "center", display: "flex", flexDirection: "column", gap: 12 }}>
         {items.map(([s, d], i) => (
           <Enter key={i} delay={d - 3} x={i % 2 ? 140 : -140} y={0} cfg={theme.spring.snappy}>
             <Breathe amt={0.008} speed={18 + i * 3}>
-              <div style={{ display: "flex", alignItems: "center", gap: 26, width: 840, whiteSpace: "nowrap", boxSizing: "border-box", padding: "26px 34px", borderRadius: 30, background: theme.colors.card, border: `2px solid ${theme.colors.cardBorder}`, boxShadow: "0 30px 60px -20px rgba(0,0,0,.6)", fontFamily: theme.fonts.display, fontWeight: 800, fontSize: 54, color: theme.colors.text, marginBottom: 18 }}>
-                <Cross size={64} />{s}
+              <div style={{ display: "flex", alignItems: "center", gap: 22, width: 900, whiteSpace: "nowrap", boxSizing: "border-box", padding: "16px 28px", borderRadius: 26, background: "rgba(0,0,0,0.5)", border: `2px solid ${theme.colors.cardBorder}`, boxShadow: "0 24px 50px -20px rgba(0,0,0,.7)", fontFamily: theme.fonts.display, fontWeight: 800, fontSize: 46, color: theme.colors.text }}>
+                <Cross size={52} />{s}
               </div>
             </Breathe>
           </Enter>
         ))}
-      </Col>
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };
@@ -110,28 +106,34 @@ const Rays: React.FC<{ delay: number }> = ({ delay }) => {
   );
 };
 export const Reveal: React.FC<P> = ({ start }) => {
+  const f = useCurrentFrame();
   const logo = W(3, "metodo", start);
-  const B: [string, string, number][] = [
-    ["Programa de 30 dias", "trinta", 0], ["Exercícios faciais guiados", "exercicios", 0], ["Só 10 minutos por dia", "dez", 0], ["Feito em casa", "feitos", 0], ["Sem agulha e sem cirurgia", "agulha", 0]];
+  const s4 = segStart(4) - start;
+  const sp = useSpring(s4 - 4, theme.spring.smooth);
+  const B: [string, string][] = [["Programa de 30 dias", "trinta"], ["Exercícios faciais guiados", "exercicios"], ["Só 10 minutos por dia", "dez"], ["Feito em casa", "feitos"], ["Sem agulha e sem cirurgia", "agulha"]];
   return (
     <AbsoluteFill>
       <BgMesh a="#4A0B1C" b={theme.colors.primary} />
+      <AbsoluteFill style={{ opacity: interpolate(sp, [0, 1], [0, 1], cl) }}><BlurBg src="img/sofa.jpg" /></AbsoluteFill>
       <Snow count={50} />
-      <Rays delay={logo + 4} />
-      <Col top={300} gap={0}>
-        <Enter delay={2}><div style={{ ...H, fontSize: 64, fontWeight: 800, color: theme.colors.textDim }}>Conheça o</div></Enter>
-        <Enter delay={logo - 2}><div style={{ ...H, fontSize: 120 }}>MÉTODO</div></Enter>
-        <Enter delay={logo + 4} cfg={theme.spring.bouncy} from={0.3}>
-          <Breathe amt={0.02}><div style={{ ...H, fontSize: 330, color: theme.colors.primary, textShadow: `0 0 70px ${theme.colors.glow}, 0 12px 0 #8A4B00`, marginTop: -30 }}>4D</div></Breathe>
-        </Enter>
-        <Enter delay={logo + 14}><Pill bg="#fff" color={theme.colors.ink} size={50}>para redução de papada</Pill></Enter>
-      </Col>
-      <AbsoluteFill style={{ top: 1060, alignItems: "center" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 18, width: 980 }}>
+      <div style={{ opacity: 1 - sp }}><Rays delay={logo + 4} /></div>
+      <AbsoluteFill style={{ transform: `translateY(${-205 * sp}px) scale(${1 - 0.52 * sp})`, transformOrigin: "50% 300px" }}>
+        <Col top={300} gap={0}>
+          <Enter delay={2}><div style={{ ...H, fontSize: 64, fontWeight: 800, color: theme.colors.textDim }}>Conheça o</div></Enter>
+          <Enter delay={logo - 2}><div style={{ ...H, fontSize: 120 }}>MÉTODO</div></Enter>
+          <Enter delay={logo + 4} cfg={theme.spring.bouncy} from={0.3}>
+            <Breathe amt={0.02}><div style={{ ...H, fontSize: 330, color: theme.colors.primary, textShadow: `0 0 70px ${theme.colors.glow}, 0 12px 0 #8A4B00`, marginTop: -30 }}>4D</div></Breathe>
+          </Enter>
+          <Enter delay={logo + 14}><Pill bg="#fff" color={theme.colors.ink} size={50}>para redução de papada</Pill></Enter>
+        </Col>
+      </AbsoluteFill>
+      {f > s4 - 6 && <Card src="img/sofa.jpg" top={470} h={600} delay={s4} pos="58% 50%" zoomFrom={1.02} zoomTo={1.14} panX={-25} />}
+      <AbsoluteFill style={{ top: 1095, alignItems: "center" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 14, width: 1000 }}>
           {B.map(([s, w], i) => (
             <Enter key={i} delay={W(4, w, start) - 3} y={30} from={0.7} cfg={theme.spring.bouncy}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 26px", borderRadius: 999, background: "rgba(0,0,0,0.45)", border: `2px solid ${theme.colors.cardBorder}`, fontFamily: theme.fonts.display, fontWeight: 800, fontSize: 40, color: "#fff" }}>
-                <Check size={44} />{s}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 22px", borderRadius: 999, background: "rgba(0,0,0,0.6)", border: `2px solid ${theme.colors.cardBorder}`, fontFamily: theme.fonts.display, fontWeight: 800, fontSize: 36, color: "#fff", whiteSpace: "nowrap" }}>
+                <Check size={40} />{s}
               </div>
             </Enter>
           ))}
@@ -154,13 +156,13 @@ const pathFrom = (pts: number[][], closed = true, from = 0, to = pts.length) => 
   }
   return d + (closed ? "Z" : "");
 };
-export const Profile: React.FC<P> = ({ start }) => {
-  const f = useCurrentFrame(); const { durationInFrames: dur } = useVideoConfig();
-  const a = 18, b = Math.round(dur * 0.62);
+const Morph: React.FC<{ dur: number }> = ({ dur }) => {
+  const f = useCurrentFrame();
+  const a = 8, b = Math.round(dur * 0.55);
   let m = interpolate(f, [a, b], [0, 1], { ...cl, easing: theme.ease.inOut });
   let day = Math.max(1, Math.round(interpolate(f, [a, b], [1, 30], { ...cl, easing: Easing.bezier(0.45, 0, 0.55, 1) })));
-  const flick = f > b + 20 ? Math.floor((f - b - 20) / 15) % 2 : 1;
-  if (f > b + 20) { m = flick; day = flick ? 30 : 1; }
+  const flick = f > b + 12 ? Math.floor((f - b - 12) / 12) % 2 : 1;
+  if (f > b + 12) { m = flick; day = flick ? 30 : 1; }
   const pts = AFTER.map((p, i) => [BEFORE[i][0] + (p[0] - BEFORE[i][0]) * m, BEFORE[i][1] + (p[1] - BEFORE[i][1]) * m]);
   const label = day <= 1 ? "ANTES" : day >= 30 ? "DEPOIS" : "EVOLUINDO";
   const lc = day <= 1 ? "#fff" : day >= 30 ? theme.colors.green : theme.colors.primary;
@@ -194,6 +196,26 @@ export const Profile: React.FC<P> = ({ start }) => {
   );
 };
 
+export const Profile: React.FC<P> = ({ start }) => {
+  const f = useCurrentFrame(); const { durationInFrames: dur } = useVideoConfig();
+  const cut = W(5, "contorno", start) - 4;
+  const out = interpolate(f, [cut - 4, cut + 4], [1, 0], { ...cl, easing: theme.ease.in });
+  return (
+    <AbsoluteFill>
+      {f < cut + 6 && (
+        <AbsoluteFill style={{ opacity: out }}>
+          <BlurBg src="img/banheiro.jpg" />
+          <Card src="img/banheiro.jpg" top={170} h={1000} pos="50% 35%" zoomFrom={1.0} zoomTo={1.12} panX={20} />
+          <Col top={1200} gap={10}>
+            <Enter delay={W(5, "musculatura", start) - 3} cfg={theme.spring.bouncy}><Pill bg={theme.colors.primary} color={theme.colors.ink} size={62} glow>ROSTO + PESCOÇO</Pill></Enter>
+          </Col>
+        </AbsoluteFill>
+      )}
+      <Sequence from={cut}><Morph dur={dur - cut} /></Sequence>
+    </AbsoluteFill>
+  );
+};
+
 /* 5 — CALENDAR */
 export const Calendar: React.FC<P> = ({ start }) => {
   const f = useCurrentFrame();
@@ -221,11 +243,25 @@ export const Calendar: React.FC<P> = ({ start }) => {
           );
         })}
       </div>
-      <AbsoluteFill style={{ top: 1305, alignItems: "center" }}>
+      <AbsoluteFill style={{ top: 1305, alignItems: "center" }} data-x="star">
         <div style={{ transform: `scale(${star}) rotate(${(1 - star) * -20}deg)`, opacity: star }}>
           <Pill bg={theme.colors.accent} color="#fff" size={64}>NATAL: 25/12</Pill>
         </div>
       </AbsoluteFill>
+      <Sequence from={W(6, "chega", start) - 4}><Confident start={start} /></Sequence>
+    </AbsoluteFill>
+  );
+};
+
+const Confident: React.FC<P> = ({ start }) => {
+  const p = useSpring(0, theme.spring.smooth);
+  return (
+    <AbsoluteFill style={{ opacity: interpolate(p, [0, 0.4], [0, 1], cl) }}>
+      <BlurBg src="img/confiante.jpg" />
+      <Card src="img/confiante.jpg" top={170} h={1030} pos="50% 30%" zoomFrom={1.0} zoomTo={1.1} panX={0} />
+      <Col top={1235} gap={10}>
+        <Enter delay={6} cfg={theme.spring.bouncy}><Pill bg={theme.colors.primary} color={theme.colors.ink} size={56} glow>CONFIANÇA NA CEIA</Pill></Enter>
+      </Col>
     </AbsoluteFill>
   );
 };
@@ -272,27 +308,27 @@ export const CTA: React.FC<P> = ({ start }) => {
   const glow = 0.6 + 0.4 * Math.sin(f / 8);
   return (
     <AbsoluteFill>
-      <BgMesh a="#5A0B20" b={theme.colors.primary} />
-      <Snow count={70} />
-      <Col top={300} gap={10}>
-        <Enter delay={4} cfg={theme.spring.bouncy}><div style={{ ...H, fontSize: 130, color: theme.colors.primary, textShadow: `0 0 60px ${theme.colors.glow}` }}>MÉTODO 4D</div></Enter>
-        <Enter delay={9}><div style={{ ...H, fontSize: 60, fontWeight: 800 }}>seu rosto pronto pro Natal*</div></Enter>
+      <BlurBg src="vid/final.mp4" video rate={0.6} />
+      <Col top={120} gap={4}>
+        <Enter delay={4} cfg={theme.spring.bouncy}><div style={{ ...H, fontSize: 112, color: theme.colors.primary, textShadow: `0 0 60px ${theme.colors.glow}` }}>MÉTODO 4D</div></Enter>
+        <Enter delay={9}><div style={{ ...H, fontSize: 50, fontWeight: 800 }}>seu rosto pronto pro Natal*</div></Enter>
       </Col>
-      <AbsoluteFill style={{ top: 900, alignItems: "center" }}>
+      <Card src="vid/final.mp4" video rate={0.6} top={360} h={620} delay={2} zoomFrom={1.0} zoomTo={1.08} panX={0} />
+      <AbsoluteFill style={{ top: 1020, alignItems: "center" }}>
         <Enter delay={btn - 3} cfg={theme.spring.bouncy} from={0.5}>
           <Breathe amt={0.035} speed={7}>
-            <div style={{ background: theme.colors.primary, color: theme.colors.ink, fontFamily: theme.fonts.display, fontWeight: 900, fontSize: 64, padding: "36px 56px", borderRadius: 999, boxShadow: `0 0 ${60 * glow}px ${theme.colors.glow}, 0 0 ${140 * glow}px rgba(245,184,61,.3)` }}>TOQUE EM SAIBA MAIS</div>
+            <div style={{ background: theme.colors.primary, color: theme.colors.ink, fontFamily: theme.fonts.display, fontWeight: 900, fontSize: 64, padding: "34px 56px", borderRadius: 999, whiteSpace: "nowrap", boxShadow: `0 0 ${60 * glow}px ${theme.colors.glow}, 0 0 ${140 * glow}px rgba(245,184,61,.3)` }}>TOQUE EM SAIBA MAIS</div>
           </Breathe>
         </Enter>
       </AbsoluteFill>
-      <AbsoluteFill style={{ top: 1120, alignItems: "center" }}>
+      <AbsoluteFill style={{ top: 1205, alignItems: "center" }}>
         <Enter delay={W(8, "embaixo", start) - 3}>
-          <svg width="160" height="230" viewBox="0 0 160 230" style={{ transform: `translateY(${Math.abs(Math.sin(f / 7)) * 30}px)` }}>
+          <svg width="120" height="170" viewBox="0 0 160 230" style={{ transform: `translateY(${Math.abs(Math.sin(f / 7)) * 24}px)` }}>
             {[0, 1, 2].map((k) => <path key={k} d={`M20 ${30 + k * 65} L80 ${85 + k * 65} L140 ${30 + k * 65}`} stroke="#fff" strokeWidth="18" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity={0.4 + k * 0.3} />)}
           </svg>
         </Enter>
       </AbsoluteFill>
-      <AbsoluteFill style={{ top: 1840, alignItems: "center" }}><div style={{ fontFamily: theme.fonts.display, fontWeight: 600, fontSize: 24, color: "rgba(255,255,255,.7)" }}>*Resultados variam de pessoa para pessoa.</div></AbsoluteFill>
+      <AbsoluteFill style={{ top: 1840, alignItems: "center" }}><div style={{ fontFamily: theme.fonts.display, fontWeight: 600, fontSize: 24, color: "rgba(255,255,255,.75)" }}>*Resultados variam de pessoa para pessoa. Imagens ilustrativas geradas por IA.</div></AbsoluteFill>
     </AbsoluteFill>
   );
 };
