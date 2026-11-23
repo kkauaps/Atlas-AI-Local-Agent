@@ -7,7 +7,7 @@ import { SceneFx } from "./components/Motion";
 import { Grain, Vignette } from "./components/Layers";
 import { Captions } from "./components/Captions";
 import { Dust, LightLeaks } from "./fx";
-import { Hook, Exit, Scale, Inside, CTA } from "./Scenes";
+import { Hook, Exit, Depth, Heat, Fall, Reality, CTA } from "./Scenes";
 
 const useFonts = () => {
   const [h] = useState(() => delayRender("fonts"));
@@ -25,8 +25,8 @@ const Grade: React.FC = () => (
     <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.3), transparent 18%, transparent 74%, rgba(0,0,0,0.45))" }} />
   </AbsoluteFill>
 );
-export const CUTS = [0, ...[1, 2, 3, 7].map((i) => segStart(i) - 6), TOTAL];
-const SCENES: React.FC<any>[] = [Hook, Exit, Scale, Inside, CTA];
+export const CUTS = [0, ...[1, 2, 4, 6, 11, 13].map((i) => segStart(i) - 6), TOTAL];
+const SCENES: React.FC<any>[] = [Hook, Exit, Depth, Heat, Fall, Reality, CTA];
 
 export const Main: React.FC = () => {
   useFonts();
@@ -48,15 +48,17 @@ export const Main: React.FC = () => {
       <Sequence from={sec(theme.voOffset)}><Audio src={staticFile("buraco/voice.wav")} volume={1} /></Sequence>
       <Audio src={staticFile("buraco/music.wav")} volume={(f) => interpolate(f, [0, 15, voEnd, voEnd + 10, TOTAL - 20, TOTAL], [0, 0.1, 0.1, 0.32, 0.32, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })} />
       {CUTS.slice(1, -1).map((c, i) => <Sfx key={i} at={c - 6} src="whoosh" vol={0.1} />)}
-      <Sfx at={wordFrame(0, "atravessando") - 2} src="boom" vol={0.16} />
-      <Sfx at={wordFrame(0, "pulasse") - 3} src="pop" vol={0.16} />
-      <Sfx at={wordFrame(1, "japao") + 4} src="pop" vol={0.16} />
-      <Sfx at={wordFrame(2, "doze") - 4} src="shimmer" vol={0.16} />
-      <Sfx at={wordFrame(3, "cinco") - 4} src="boom" vol={0.14} />
-      <Sfx at={wordFrame(4, "cairia") - 4} src="whoosh" vol={0.2} />
-      <Sfx at={wordFrame(5, "trinta") - 4} src="pop" vol={0.16} />
-      <Sfx at={wordFrame(6, "sempre") - 4} src="shimmer" vol={0.16} />
-      <Sfx at={segStart(7) - 6} src="shimmer" vol={0.18} />
+      <Sfx at={wordFrame(0, "atravessando") - 2} src="boom" vol={0.15} />
+      <Sfx at={wordFrame(1, "japao") + 4} src="pop" vol={0.15} />
+      <Sfx at={wordFrame(2, "doze") - 4} src="shimmer" vol={0.15} />
+      <Sfx at={wordFrame(5, "pressao") - 4} src="boom" vol={0.12} />
+      <Sfx at={wordFrame(6, "cairia") - 4} src="whoosh" vol={0.18} />
+      <Sfx at={wordFrame(8, "balanco") - 4} src="pop" vol={0.15} />
+      <Sfx at={wordFrame(9, "trinta") - 4} src="pop" vol={0.15} />
+      <Sfx at={wordFrame(10, "sempre") - 4} src="shimmer" vol={0.15} />
+      <Sfx at={wordFrame(11, "parede") - 2} src="boom" vol={0.18} />
+      <Sfx at={wordFrame(12, "pular") - 4} src="pop" vol={0.18} />
+      <Sfx at={segStart(13) - 6} src="shimmer" vol={0.16} />
     </AbsoluteFill>
   );
 };
