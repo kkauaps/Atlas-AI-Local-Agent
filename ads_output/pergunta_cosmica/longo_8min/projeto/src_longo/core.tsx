@@ -43,10 +43,10 @@ export const Captions16: React.FC<{ k: string }> = ({ k }) => {
   const page = pages[pi];
   const p = spring({ frame: f - sec(page[0].s + vo) + 2, fps, config: theme.spring.snappy });
   return (
-    <AbsoluteFill style={{ top: 935, alignItems: "center" }}>
+    <AbsoluteFill style={{ top: 920, alignItems: "center" }}>
       <div style={{ display: "flex", gap: 14, padding: "10px 22px", borderRadius: 18, background: "rgba(0,0,0,.55)", transform: `translateY(${(1 - p) * 14}px)`, opacity: p }}>
         {page.map((w, i) => { const act = t >= w.s - 0.03 && t <= w.e + 0.06;
-          return <span key={i} style={{ fontFamily: theme.fonts.display, fontWeight: 800, fontSize: 44, color: act ? theme.colors.primary : "#fff" }}>{w.w.replace(/[.,:!?…]$/, "")}</span>; })}
+          return <span key={i} style={{ fontFamily: theme.fonts.display, fontWeight: 800, fontSize: 54, color: act ? theme.colors.primary : "#fff" }}>{w.w.replace(/[.,:!?…]$/, "")}</span>; })}
       </div>
     </AbsoluteFill>
   );

@@ -6,6 +6,8 @@ import { Intro, B8 } from "./blocks_a";
 import { B7, B6 } from "./blocks_b";
 import { B5, B4, B3, B2, B1, Outro } from "./blocks_c";
 import { Short, shortDur } from "./short";
+import { B2HD } from "./b2hd";
+const B2HDC: React.FC = () => <BlockShell k="b2" n={2} title="VOCÊ É FEITO DE ESTRELAS"><B2HD /></BlockShell>;
 const IntroC: React.FC = () => <BlockShell k="intro"><Intro /></BlockShell>;
 const B8C: React.FC = () => <BlockShell k="b8" n={8} title="VOCÊ NUNCA TOCOU EM NADA"><B8 /></BlockShell>;
 const B7C: React.FC = () => <BlockShell k="b7" n={7} title="VOCÊ ESTÁ VENDO O PASSADO"><B7 /></BlockShell>;
@@ -29,4 +31,5 @@ registerRoot(() => <>
   <Composition id="Outro" component={OutroC} durationInFrames={blockDur("outro")} fps={FPS} width={1920} height={1080} />
   <Composition id="ShortB2" component={Short} durationInFrames={shortDur(60.17)} fps={FPS} width={1080} height={1920} defaultProps={{ clip: "longo/clips/B2.mp4", n: 2, hook: "VOCÊ É FEITO DE", hook2: "RESTOS DE ESTRELAS", clipSec: 60.17 }} />
   <Composition id="ShortB1" component={Short} durationInFrames={shortDur(57.4) + 90} fps={FPS} width={1080} height={1920} defaultProps={{ clip: "longo/clips/B1.mp4", n: 1, hook: "95% DO UNIVERSO", hook2: "NINGUÉM NUNCA VIU", clipSec: 57.4 }} />
+  <Composition id="B2HD" component={B2HDC} durationInFrames={blockDur("b2")} fps={FPS} width={1920} height={1080} />
 </>);
