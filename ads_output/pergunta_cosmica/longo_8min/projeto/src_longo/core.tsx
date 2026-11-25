@@ -14,8 +14,8 @@ import { cl } from "./cl";
 export const sec = (s: number) => Math.round(s * FPS);
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
 // block timing: VO starts at `vo` seconds from block start
-export const voStart = (k: string) => (k === "intro" ? 0.5 : STING + 0.25);
-export const blockDur = (k: string) => sec(voStart(k) + BLOCKS[k].end + theme.tail + (k === "intro" ? 0.6 : 0));
+export const voStart = (k: string) => (k === "intro" || k === "outro" ? 0.5 : STING + 0.25);
+export const blockDur = (k: string) => sec(voStart(k) + BLOCKS[k].end + theme.tail + (k === "intro" ? 0.6 : k === "outro" ? 5.2 : 0));
 export const useBlock = (k: string) => {
   const f = useCurrentFrame();
   const vo = voStart(k);
