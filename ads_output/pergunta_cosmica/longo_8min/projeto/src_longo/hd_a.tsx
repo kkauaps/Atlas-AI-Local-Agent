@@ -263,7 +263,7 @@ export const B7HD: React.FC = () => {
   );
 };
 /* ---------- night hilltop set for #7 ---------- */
-const MOON: V3 = [-7.5, 6.5, -34];
+const MOON: V3 = [-15, 8.5, -34];
 const MoonLit: React.FC = () => { const [m] = useLoader(THREE.TextureLoader, [staticFile("longo/moon.jpg")]); m.colorSpace = THREE.SRGBColorSpace;
   return <mesh position={MOON} rotation={[0, 0.6, 0]}><sphereGeometry args={[1.9, 64, 64]} /><meshBasicMaterial map={m} color="#f1f4ff" toneMapped={false} /></mesh>; };
 const NightSet: React.FC<{ t: number; galaxy?: number }> = ({ t, galaxy = 0 }) => (<>
@@ -477,6 +477,8 @@ export const B6V2: React.FC = () => {
   const cnt = (a: number, b: number, to: number) => fmt(interpolate(t, [a, b], [0, to], { ...cl, easing: Easing.out(Easing.cubic) }));
   const brake = E(t, w("freada") - 0.6, w("freada") + 0.2);
   const orbitA = t * 0.6;
+  const roadX = (() => { const tb = w("freada") - 0.6; const v = 9; return t < tb ? t * v : tb * v + v * 0.8 * (1 - Math.pow(1 - Math.min(1, (t - tb) / 0.8), 2)); })();
+  const cup = E(t, w("freada") - 0.6, w("freada") + 0.1, Easing.out(Easing.quad));
   const out1 = E(t, w("terra") - 1.2, w("terra") - 0.1, Easing.in(Easing.cubic));
   const pull = E(t, w("terra") - 0.25, w("brasil") - 0.3, Easing.inOut(Easing.cubic));
   const lerpE = (a: number, b: number, p: number) => a * Math.pow(b / a, p);
@@ -539,9 +541,9 @@ export const B6V2: React.FC = () => {
       </Layer>
       <Layer o={M5}>
         <Stage pos={[0, 3.0, 5.4]} tgt={[0, 2.5, 0]} fov={42} bg="#050814">
-          <StarField n={5000} size={0.45} /><Nebula seed={40} colors={["#0891b2", "#4c1d95"]} z={-40} opacity={0.35} />
+          <group rotation={[0, 0, (t - w("sente")) * 0.25]}><StarField n={6000} size={0.5} /></group><Nebula seed={40} colors={["#0891b2", "#4c1d95"]} z={-40} opacity={0.35} />
           <hemisphereLight args={["#cfe0ff", "#1b2234", 0.8]} /><directionalLight position={[4, 6, 5]} intensity={2.2} color="#fff1dc" />
-          <group rotation={[0, 0, -(t - w("sente")) * 0.1]}>
+          <group rotation={[0, 0, 0.12]}>
             <mesh><sphereGeometry args={[2, 64, 48]} /><meshLambertMaterial color="#3f6b46" /></mesh>
             {tiny.map((b, i) => <group key={i} rotation={[0, 0, b[0]]}><mesh position={[0, 2 + b[2] / 2, b[1]]}><boxGeometry args={[0.32, b[2], 0.32]} /><meshLambertMaterial color={["#e5e7eb", "#93c5fd", "#fca5a5", "#fde68a"][i % 4]} /></mesh></group>)}
             {Array.from({ length: 9 }).map((_, i) => <group key={`c${i}`} rotation={[0, 0, i * 0.7 + 0.4]}><mesh position={[0, 2.9 + (i % 3) * 0.3, -0.8 + (i % 2) * 1.2]}><sphereGeometry args={[0.22, 16, 12]} /><meshLambertMaterial color="#ffffff" transparent opacity={0.85} /></mesh></group>)}
@@ -554,32 +556,45 @@ export const B6V2: React.FC = () => {
         <Tag at={W("percebe") - 4} bottom={150}>O CORPO SÓ SENTE MUDANÇAS DE VELOCIDADE</Tag>
       </Layer>
       <Layer o={M6}>
-        <AbsoluteFill style={{ background: "linear-gradient(#0b2a4a, #071a33 60%, #052036)" }} />
-        <svg width={1920} height={1080} style={{ position: "absolute", inset: 0 }}>
-          <defs><linearGradient id="hull" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#9a3412" /><stop offset="1" stopColor="#431407" /></linearGradient><linearGradient id="sail" x1="0" x2="1"><stop offset="0" stopColor="#fff7ed" /><stop offset="1" stopColor="#e7e5e4" /></linearGradient></defs>
-          {Array.from({ length: 6 }).map((_, i) => <path key={i} d={`M0 ${780 + i * 45} Q 240 ${760 + i * 45 + Math.sin(t * 2 + i) * 12} 480 ${780 + i * 45} T 960 ${780 + i * 45} T 1440 ${780 + i * 45} T 1920 ${780 + i * 45}`} stroke={`rgba(147,197,253,${0.45 - i * 0.05})`} strokeWidth={5} fill="none" transform={`translate(${-((f * 2 + i * 60) % 480)} 0)`} />)}
-          <g transform={`translate(960 ${720 + Math.sin(t * 1.5) * 5})`}>
-            <path d="M-460 0 L460 0 L370 120 L-370 120Z" fill="url(#hull)" /><rect x={-380} y={-210} width={760} height={210} rx={12} fill="#a16207" />
-            <rect x={-350} y={-190} width={700} height={170} rx={10} fill="#fef3c7" />
-            <circle cx={-150} cy={-130 + ((t * 120) % 95)} r={16} fill="#dc2626" /><g transform="translate(-210 -100)"><circle cx={0} cy={-28} r={22} fill="#E9C3A1" /><rect x={-22} y={-6} width={44} height={76} rx={16} fill="#1e3a8a" /></g>
-            <ellipse cx={160} cy={-70} rx={66} ry={44} fill="rgba(56,189,248,.45)" stroke="#0369a1" strokeWidth={4} /><path d={`M${140 + Math.sin(t * 3) * 22} -70 l22 -9 v18Z`} fill="#f97316" />
-            <rect x={-7} y={-500} width={14} height={290} fill="#78350f" /><path d="M7 -490 Q 230 -380 7 -230Z" fill="url(#sail)" />
-          </g>
-        </svg>
+        <Stage pos={[0.6, 2.4, 7.5]} tgt={[0, 1.4, 0]} fov={40} bg="#0b2340">
+          <fog attach="fog" args={["#10304f", 12, 40]} /><SkyDome top="#0b1d3a" mid="#2b5c8a" bot="#f4a261" />
+          <hemisphereLight args={["#dbeafe", "#0b2340", 0.9]} /><directionalLight position={[-5, 6, 4]} intensity={2.4} color="#fff1dc" />
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}><planeGeometry args={[200, 200]} /><meshLambertMaterial color="#1d4f7a" /></mesh>
+          {Array.from({ length: 40 }).map((_, i) => { const R = rng(i + 70); const x = ((R() * 40 - (t * 1.2)) % 40 + 40) % 40 - 20; return <mesh key={i} position={[x, 0.01, -R() * 20 + 3]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[0.8 + R(), 0.05]} /><meshBasicMaterial color="#9cc3e6" transparent opacity={0.5} /></mesh>; })}
+          <group position={[0, 0.15 + Math.sin(t * 1.4) * 0.03, 0]} rotation={[0, 0, Math.sin(t * 1.1) * 0.012]}>
+            <mesh position={[0, 0.35, 0]}><boxGeometry args={[5.2, 0.7, 1.8]} /><meshLambertMaterial color="#7c2d12" /></mesh>
+            <mesh position={[2.75, 0.45, 0]} rotation={[0, 0, 0.5]}><boxGeometry args={[0.8, 0.6, 1.6]} /><meshLambertMaterial color="#7c2d12" /></mesh>
+            <mesh position={[0, 0.72, 0]}><boxGeometry args={[5.25, 0.05, 1.85]} /><meshLambertMaterial color="#c08a4a" /></mesh>
+            <mesh position={[-0.4, 1.35, -0.55]}><boxGeometry args={[3.2, 1.25, 0.08]} /><meshLambertMaterial color="#fde7c2" /></mesh>
+            <mesh position={[-2.0, 1.35, 0]}><boxGeometry args={[0.08, 1.25, 1.2]} /><meshLambertMaterial color="#fde7c2" /></mesh>
+            <Person pos={[-1.2, 0.75, 0]} rot={[0, 0.6, 0]} scale={0.6} time={t} color="#e6e9ef" />
+            <mesh position={[-0.55, 0.75 + 0.55 - ((t * 0.9) % 1) * ((t * 0.9) % 1) * 0.55, 0.1]}><sphereGeometry args={[0.07, 20, 14]} /><meshStandardMaterial color="#dc2626" /></mesh>
+            <mesh position={[0.4, 1.0, 0]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.2, 0.2, 0.3, 32, 1, true]} /><meshStandardMaterial color="#bae6fd" transparent opacity={0.5} side={THREE.DoubleSide} /></mesh>
+            <mesh position={[1.3, 2.4, 0]}><cylinderGeometry args={[0.05, 0.06, 3.4, 12]} /><meshLambertMaterial color="#5b3a1a" /></mesh>
+            <mesh position={[1.75, 2.6, 0]} rotation={[0, 0, 0]} scale={[1, 1, 1]}><boxGeometry args={[0.9, 2.2, 0.02]} /><meshLambertMaterial color="#f8f1e4" /></mesh>
+          </group>
+        </Stage>
         <Title at={W("galileu") - 3} lines={["O NAVIO DE GALILEU", "1632"]} top={70} size={84} />
         <Tag at={W("parado") - 4}>LÁ DENTRO, NÃO DÁ PRA SABER SE ESTÁ PARADO</Tag>
       </Layer>
       <Layer o={M7}>
-        <AbsoluteFill style={{ background: "linear-gradient(#1e1b4b, #0f172a)" }} />
-        <svg width={1920} height={1080} style={{ position: "absolute", inset: 0 }}>
-          <rect x={0} y={780} width={1920} height={300} fill="#111827" />{Array.from({ length: 8 }).map((_, i) => <rect key={i} x={((i * 280 - f * 24 * (1 - brake)) % 2240 + 2240) % 2240 - 160} y={900} width={150} height={14} rx={7} fill="#FBBF24" />)}
-          <g transform={`translate(820 ${630 + brake * 8}) rotate(${brake * 2.5})`}>
-            <path d="M0 150 L0 70 Q 70 -10 220 -10 L380 -10 Q 470 0 500 80 L530 150Z" fill="#dc2626" /><rect x={200} y={10} width={160} height={66} rx={12} fill="#bae6fd" />
-            <circle cx={110} cy={150} r={48} fill="#111" stroke="#9ca3af" strokeWidth={8} /><circle cx={420} cy={150} r={48} fill="#111" stroke="#9ca3af" strokeWidth={8} />
-            <g transform={`translate(280 46) rotate(${brake * 28})`}><circle cx={0} cy={-22} r={18} fill="#E9C3A1" /></g>
-          </g>
-          {brake > 0.3 && [0, 1, 2].map((i) => <path key={i} d={`M${760 - i * 50} ${700 + i * 30} h-140`} stroke="#fde68a" strokeWidth={8} strokeLinecap="round" opacity={brake} />)}
-        </svg>
+        <Stage pos={[3.2 - brake * 0.2, 1.5, 5.2]} tgt={[0.2, 0.7, 0]} fov={40} bg="#16203a">
+          <fog attach="fog" args={["#2a2f4a", 10, 50]} /><SkyDome top="#1e2b55" mid="#7a4a6a" bot="#ff9a55" />
+          <hemisphereLight args={["#ffd2a6", "#1b2234", 1.0]} /><directionalLight position={[4, 6, 5]} intensity={2.2} color="#fff1dc" />
+          <mesh rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[200, 200]} /><meshLambertMaterial color="#2f3440" /></mesh>
+          {Array.from({ length: 14 }).map((_, i) => { const x = (((i * 3 - roadX) % 42) + 42) % 42 - 21; return <mesh key={i} position={[x, 0.005, 0.9]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[1.4, 0.12]} /><meshBasicMaterial color="#facc15" /></mesh>; })}
+          {Array.from({ length: 12 }).map((_, i) => { const x = (((i * 4 - roadX) % 48) + 48) % 48 - 24; return <mesh key={`p${i}`} position={[x, 1.2, -3]}><cylinderGeometry args={[0.05, 0.05, 2.4, 8]} /><meshLambertMaterial color="#64748b" /></mesh>; })}
+          <group position={[0, 0.32, 0]} rotation={[0, 0, -brake * (1 - brake) * 0.35]}>
+            <mesh position={[0, 0.35, 0]}><boxGeometry args={[3.2, 0.55, 1.5]} /><meshStandardMaterial color="#dc2626" roughness={0.35} metalness={0.3} /></mesh>
+            <mesh position={[-0.2, 0.85, 0]}><boxGeometry args={[1.7, 0.5, 1.4]} /><meshStandardMaterial color="#b91c1c" roughness={0.35} metalness={0.3} /></mesh>
+            <mesh position={[-0.2, 0.86, 0.71]}><boxGeometry args={[1.5, 0.38, 0.02]} /><meshStandardMaterial color="#93c5fd" roughness={0.1} metalness={0.5} /></mesh>
+            {[[-1.0, 0.75], [1.0, 0.75], [-1.0, -0.75], [1.0, -0.75]].map(([x, z], k) => <mesh key={k} position={[x, 0.05, z]} rotation={[Math.PI / 2, 0, roadX * 2.2]}><cylinderGeometry args={[0.32, 0.32, 0.22, 24]} /><meshStandardMaterial color="#111827" roughness={0.8} /></mesh>)}
+            {null}
+            <Glow pos={[1.62, 0.4, 0.5]} size={0.5} color="#fde68a" opacity={0.8} /><Glow pos={[1.62, 0.4, -0.5]} size={0.5} color="#fde68a" opacity={0.8} />
+            <Glow pos={[-1.62, 0.45, 0.55]} size={0.6} color="#ef4444" opacity={0.2 + brake * 0.8} /><Glow pos={[-1.62, 0.45, -0.55]} size={0.6} color="#ef4444" opacity={0.2 + brake * 0.8} />
+          </group>
+          {brake > 0.2 && [0.75, -0.75].map((z, k) => <mesh key={k} position={[-2.2, 0.006, z]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[2.2 * brake, 0.2]} /><meshBasicMaterial color="#0b0b0b" transparent opacity={0.6} /></mesh>)}
+        </Stage>
         <Title at={W("incomoda") - 4} lines={["SÓ INCOMODA QUANDO", "MUDA DE REPENTE"]} top={70} size={88} />
       </Layer>
       <Sfx at={W("gira") - 3} src="swoosh.wav" vol={0.18} />
