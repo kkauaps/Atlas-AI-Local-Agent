@@ -42,3 +42,4 @@ _*.txt
 
 # masters de vídeo grandes (>100MB) – não versionar
 *_MASTER.mp4
+*.tmp.mp4
