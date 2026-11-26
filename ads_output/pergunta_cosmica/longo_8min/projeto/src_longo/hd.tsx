@@ -19,6 +19,7 @@ const Cam: React.FC<{ pos: V3; tgt: V3; fov: number; roll?: number }> = ({ pos, 
 };
 
 /* full-resolution canvas with cinematic post-processing (bloom + vignette + subtle CA/grain) */
+export const useV = () => { const { width, height } = useVideoConfig(); return height > width; };
 export const Stage: React.FC<{ pos: V3; tgt: V3; fov?: number; roll?: number; bloom?: number; children: React.ReactNode; bg?: string; ca?: number }> = ({ pos, tgt, fov = 45, roll = 0, bloom = 1.1, children, bg = "#010208", ca = 0.0006 }) => {
   const { width, height } = useVideoConfig();
   const caOff = useMemo(() => new THREE.Vector2(ca, ca), [ca]);
@@ -27,7 +28,7 @@ export const Stage: React.FC<{ pos: V3; tgt: V3; fov?: number; roll?: number; bl
     <div style={{ position: "absolute", left: 0, top: 0, width: W, height: Hh, transform: `scale(${1 / POST.res})`, transformOrigin: "0 0" }}>
     <ThreeCanvas width={W} height={Hh} gl={{ antialias: false, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace, powerPreference: "high-performance" }}>
       <color attach="background" args={[bg]} />
-      <Cam pos={pos} tgt={tgt} fov={fov} roll={roll} />
+      <Cam pos={pos} tgt={tgt} fov={height > width ? Math.min(95, fov * 1.45) : fov} roll={roll} />
       <React.Suspense fallback={null}>{children}</React.Suspense>
       {POST.on && <EffectComposer multisampling={0} disableNormalPass>
         <Bloom intensity={bloom} luminanceThreshold={0.18} luminanceSmoothing={0.35} mipmapBlur radius={0.75} />
@@ -116,10 +117,15 @@ export const BODY: { p: V3; r: number; len: number; rot?: V3 }[] = [
   { p: [-0.14, -0.05, 0], r: 0.1, len: 0.6 }, { p: [0.14, -0.05, 0], r: 0.1, len: 0.6 },
   { p: [-0.15, -0.78, 0], r: 0.085, len: 0.6 }, { p: [0.15, -0.78, 0], r: 0.085, len: 0.6 },
 ];
-export const HoloBody: React.FC<{ color?: string; opacity?: number; pos?: V3; scale?: number; spin?: number }> = ({ color = "#7dd3fc", opacity = 1, pos = [0, 0, 0], scale = 1, spin = 0 }) => {
+export const SEATED: { p: V3; r: number; len: number; rot?: V3 }[] = [
+  ...BODY.slice(0, 8),
+  { p: [-0.14, -0.02, 0.32], r: 0.1, len: 0.55, rot: [Math.PI / 2, 0, 0] }, { p: [0.14, -0.02, 0.32], r: 0.1, len: 0.55, rot: [Math.PI / 2, 0, 0] },
+  { p: [-0.15, -0.45, 0.68], r: 0.085, len: 0.6 }, { p: [0.15, -0.45, 0.68], r: 0.085, len: 0.6 },
+];
+export const HoloBody: React.FC<{ color?: string; opacity?: number; pos?: V3; scale?: number; spin?: number; seated?: boolean }> = ({ color = "#7dd3fc", opacity = 1, pos = [0, 0, 0], scale = 1, spin = 0, seated = false }) => {
   const mat = useMemo(() => new THREE.ShaderMaterial({ vertexShader: holoVS, fragmentShader: holoFS, uniforms: { uC: { value: new THREE.Color(color) }, uO: { value: 1 } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false }), [color]);
   mat.uniforms.uO.value = opacity;
-  return <group position={pos} scale={scale} rotation={[0, spin, 0]}>{BODY.map((b, i) => <mesh key={i} position={b.p} rotation={b.rot ?? [0, 0, 0]} material={mat}><capsuleGeometry args={[b.r, b.len, 8, 24]} /></mesh>)}</group>;
+  return <group position={pos} scale={scale} rotation={[0, spin, 0]}>{(seated ? SEATED : BODY).map((b, i) => <mesh key={i} position={b.p} rotation={b.rot ?? [0, 0, 0]} material={mat}><capsuleGeometry args={[b.r, b.len, 8, 24]} /></mesh>)}</group>;
 };
 /* sample n points on the body capsules (for particle morphs) */
 export const sampleBody = (n: number, seed = 5) => { const R = rng(seed); const out = new Float32Array(n * 3);

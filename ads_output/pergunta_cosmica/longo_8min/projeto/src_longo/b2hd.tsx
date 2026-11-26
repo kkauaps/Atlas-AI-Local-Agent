@@ -5,25 +5,29 @@ import { theme } from "./theme";
 import { useBlock, Sfx } from "./core";
 import { useAbsSpring } from "./ui";
 import { cl } from "./cl";
-import { Stage, StarField, Nebula, Glow, Points, StarBody, Shock, HoloBody, sampleBody, rng, V3 } from "./hd";
+import { useV, Stage, StarField, Nebula, Glow, Points, StarBody, Shock, HoloBody, sampleBody, rng, V3 } from "./hd";
 
-const F = theme.fonts.display;
-const win = (t: number, a: number, b: number, fade = 0.4) => { const fd = Math.max(0.02, Math.min(fade, (b - a) / 2.2)); if (b - a < 0.08) return 0; return interpolate(t, [a - fd, a, b - fd, b], [0, 1, 1, 0], cl); };
-const Layer: React.FC<{ o: number; children: React.ReactNode }> = ({ o, children }) => o > 0.003 ? <AbsoluteFill style={{ opacity: o }}>{children}</AbsoluteFill> : null;
-const E = (t: number, a: number, b: number, ease = Easing.out(Easing.cubic)) => interpolate(t, [a, b], [0, 1], { ...cl, easing: ease });
+export const F = theme.fonts.display;
+export const win = (t: number, a: number, b: number, fade = 0.4) => { const fd = Math.max(0.02, Math.min(fade, (b - a) / 2.2)); if (b - a < 0.08) return 0; return interpolate(t, [a - fd, a, b - fd, b], [0, 1, 1, 0], cl); };
+export const Layer: React.FC<{ o: number; children: React.ReactNode }> = ({ o, children }) => o > 0.003 ? <AbsoluteFill style={{ opacity: o }}>{children}</AbsoluteFill> : null;
+export const E = (t: number, a: number, b: number, ease = Easing.out(Easing.cubic)) => interpolate(t, [a, b], [0, 1], { ...cl, easing: ease });
 
 /* ---------- big kinetic title ---------- */
-const Title: React.FC<{ at: number; lines: [string, string?]; top?: number; size?: number; color2?: string }> = ({ at, lines, top = 90, size = 96, color2 = theme.colors.primary }) => {
+export const vx = (x: number) => 540 + (x - 960) * 0.56;
+export const vy = (y: number) => 1180 + (y - 540) * 1.2;
+export const Title: React.FC<{ at: number; lines: [string, string?]; top?: number; size?: number; color2?: string }> = ({ at, lines, top: top0 = 90, size: size0 = 96, color2 = theme.colors.primary }) => {
+  const v = useV(); const top = v ? 290 + Math.max(0, top0 - 60) * 0.6 : top0; const size = v ? Math.min(96, size0 * 0.8) : size0;
   const p = useAbsSpring(at, 0, { damping: 16, stiffness: 120, mass: 0.8 });
   return (
-    <div style={{ position: "absolute", left: 0, right: 0, top, textAlign: "center", fontFamily: F, fontWeight: 900, letterSpacing: "-0.035em", lineHeight: 0.98, opacity: Math.min(1, p * 1.4), transform: `translateY(${(1 - p) * 40}px) scale(${0.92 + 0.08 * p})`, filter: `blur(${(1 - Math.min(1, p)) * 8}px)` }}>
+    <div style={{ position: "absolute", left: v ? 40 : 0, right: v ? 40 : 0, top, textAlign: "center", fontFamily: F, fontWeight: 900, letterSpacing: "-0.035em", lineHeight: 0.98, opacity: Math.min(1, p * 1.4), transform: `translateY(${(1 - p) * 40}px) scale(${0.92 + 0.08 * p})`, filter: `blur(${(1 - Math.min(1, p)) * 8}px)` }}>
       <div style={{ fontSize: size, color: "#fff", textShadow: "0 6px 40px rgba(0,0,0,.9), 0 0 2px rgba(0,0,0,.9)" }}>{lines[0]}</div>
       {lines[1] && <div style={{ fontSize: size, color: color2, textShadow: `0 0 50px ${color2}66, 0 6px 40px rgba(0,0,0,.9)` }}>{lines[1]}</div>}
     </div>
   );
 };
 /* glass periodic tile */
-const Tile: React.FC<{ at: number; sym: string; name: string; num: number; color: string; x: number; y: number; size?: number }> = ({ at, sym, name, num, color, x, y, size = 210 }) => {
+export const Tile: React.FC<{ at: number; sym: string; name: string; num: number; color: string; x: number; y: number; size?: number }> = ({ at, sym, name, num, color, x: x0, y: y0, size: s0 = 210 }) => {
+  const v = useV(); const x = v ? vx(x0) : x0, y = v ? vy(y0) : y0, size = v ? s0 * 0.66 : s0;
   const p = useAbsSpring(at, 0, { damping: 12, stiffness: 150, mass: 0.7 });
   const f = useCurrentFrame();
   return (
@@ -35,14 +39,14 @@ const Tile: React.FC<{ at: number; sym: string; name: string; num: number; color
     </div>
   );
 };
-const Tag: React.FC<{ at: number; children: React.ReactNode; bottom?: number; color?: string }> = ({ at, children, bottom = 170, color = theme.colors.primary }) => {
-  const p = useAbsSpring(at, 0, theme.spring.bouncy);
-  return <div style={{ position: "absolute", left: 0, right: 0, bottom, display: "flex", justifyContent: "center", opacity: Math.min(1, p * 1.5), transform: `scale(${0.7 + 0.3 * p})` }}>
-    <div style={{ fontFamily: F, fontWeight: 900, fontSize: 50, color: "#0b0b12", background: color, padding: "14px 34px", borderRadius: 20, boxShadow: `0 0 60px ${color}99` }}>{children}</div></div>;
+export const Tag: React.FC<{ at: number; children: React.ReactNode; bottom?: number; color?: string; hideV?: boolean }> = ({ at, children, bottom: b0 = 170, color = theme.colors.primary, hideV }) => {
+  const v = useV(); const p = useAbsSpring(at, 0, theme.spring.bouncy); if (v && hideV) return null; const bottom = v ? 570 : b0;
+  return <div style={{ position: "absolute", left: v ? 50 : 0, right: v ? 50 : 0, bottom, display: "flex", justifyContent: "center", opacity: Math.min(1, p * 1.5), transform: `scale(${0.7 + 0.3 * p})` }}>
+    <div style={{ textAlign: "center", lineHeight: 1.1, fontFamily: F, fontWeight: 900, fontSize: v ? 44 : 50, color: "#0b0b12", background: color, padding: "14px 34px", borderRadius: 20, boxShadow: `0 0 60px ${color}99` }}>{children}</div></div>;
 };
 
 /* ---------- particle systems (pure functions of time) ---------- */
-const burst = (n: number, seed: number, p: number, rMin: number, rMax: number, pal: number[][], flat = 1) => {
+export const burst = (n: number, seed: number, p: number, rMin: number, rMax: number, pal: number[][], flat = 1) => {
   const R = rng(seed); const pos = new Float32Array(n * 3), col = new Float32Array(n * 3); const e = Easing.out(Easing.cubic)(p);
   for (let i = 0; i < n; i++) { const u = R() * 2 - 1, th = R() * Math.PI * 2, q = Math.sqrt(1 - u * u); const sp = rMin + (rMax - rMin) * Math.pow(R(), 0.7); const d = e * sp;
     pos.set([q * Math.cos(th) * d, u * d * flat, q * Math.sin(th) * d], i * 3); const k = pal[i % pal.length]; const b = (0.6 + R() * 1.2) * (1 - p * 0.55); col.set([k[0] * b, k[1] * b, k[2] * b], i * 3); }
@@ -159,8 +163,8 @@ export const B2HD: React.FC = () => {
       <Layer o={G}>
         <Stage pos={[Math.sin(t * 0.3) * 3.5, 0.4, Math.cos(t * 0.3) * 3.5 + 2.6]} tgt={[0, 0.1, 0]} fov={45} bloom={1.5}>
           <StarField n={7000} size={0.45} /><Nebula seed={15} colors={["#7c3aed", "#db2777", "#f59e0b"]} z={-45} opacity={0.45} />
-          <Points pos={human.pos} col={human.col} size={0.045} />
-          <HoloBody color="#fbbf24" opacity={form * 0.45} pos={[0, -0.4, 0]} />
+          <Points pos={human.pos} col={human.col} size={0.085} />
+          <HoloBody color="#fbbf24" opacity={form * 0.7} pos={[0, -0.4, 0]} />
           <Glow pos={[0, 0.5, 0]} size={5 * form} color="#fbbf24" opacity={0.18 * form} />
         </Stage>
         <Title at={W("quase") - 4} lines={["QUASE TODO ÁTOMO DO SEU CORPO", "NASCEU NUMA ESTRELA"]} top={70} size={72} />

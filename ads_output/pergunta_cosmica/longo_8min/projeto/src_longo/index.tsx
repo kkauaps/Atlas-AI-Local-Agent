@@ -6,7 +6,19 @@ import { Intro, B8 } from "./blocks_a";
 import { B7, B6 } from "./blocks_b";
 import { B5, B4, B3, B2, B1, Outro } from "./blocks_c";
 import { Short, shortDur } from "./short";
+import { VShortB2, VShortB1, vShortDur, SKIP_B2, SKIP_B1 } from "./vshort";
 import { B2HD } from "./b2hd";
+import { IntroHD, B8HD, B7HD, B6HD } from "./hd_a";
+import { B5HD, B4HD, B3HD, B1HD, OutroHD } from "./hd_b";
+const B5HDC: React.FC = () => <BlockShell k="b5" n={5} title="VOCÊ É PRATICAMENTE VAZIO"><B5HD /></BlockShell>;
+const B4HDC: React.FC = () => <BlockShell k="b4" n={4} title="AS CORES NÃO EXISTEM LÁ FORA"><B4HD /></BlockShell>;
+const B3HDC: React.FC = () => <BlockShell k="b3" n={3} title="SUA CABEÇA ENVELHECE MAIS RÁPIDO QUE SEUS PÉS"><B3HD /></BlockShell>;
+const B1HDC: React.FC = () => <BlockShell k="b1" n={1} title="95% DO UNIVERSO É UM MISTÉRIO"><B1HD /></BlockShell>;
+const OutroHDC: React.FC = () => <BlockShell k="outro"><OutroHD /></BlockShell>;
+const IntroHDC: React.FC = () => <BlockShell k="intro"><IntroHD /></BlockShell>;
+const B8HDC: React.FC = () => <BlockShell k="b8" n={8} title="VOCÊ NUNCA TOCOU EM NADA"><B8HD /></BlockShell>;
+const B7HDC: React.FC = () => <BlockShell k="b7" n={7} title="VOCÊ ESTÁ VENDO O PASSADO"><B7HD /></BlockShell>;
+const B6HDC: React.FC = () => <BlockShell k="b6" n={6} title="VOCÊ ESTÁ MAIS RÁPIDO QUE UM AVIÃO"><B6HD /></BlockShell>;
 const B2HDC: React.FC = () => <BlockShell k="b2" n={2} title="VOCÊ É FEITO DE ESTRELAS"><B2HD /></BlockShell>;
 const IntroC: React.FC = () => <BlockShell k="intro"><Intro /></BlockShell>;
 const B8C: React.FC = () => <BlockShell k="b8" n={8} title="VOCÊ NUNCA TOCOU EM NADA"><B8 /></BlockShell>;
@@ -32,4 +44,15 @@ registerRoot(() => <>
   <Composition id="ShortB2" component={Short} durationInFrames={shortDur(60.17)} fps={FPS} width={1080} height={1920} defaultProps={{ clip: "longo/clips/B2.mp4", n: 2, hook: "VOCÊ É FEITO DE", hook2: "RESTOS DE ESTRELAS", clipSec: 60.17 }} />
   <Composition id="ShortB1" component={Short} durationInFrames={shortDur(57.4) + 90} fps={FPS} width={1080} height={1920} defaultProps={{ clip: "longo/clips/B1.mp4", n: 1, hook: "95% DO UNIVERSO", hook2: "NINGUÉM NUNCA VIU", clipSec: 57.4 }} />
   <Composition id="B2HD" component={B2HDC} durationInFrames={blockDur("b2")} fps={FPS} width={1920} height={1080} />
+  <Composition id="IntroHD" component={IntroHDC} durationInFrames={blockDur("intro")} fps={FPS} width={1920} height={1080} />
+  <Composition id="B8HD" component={B8HDC} durationInFrames={blockDur("b8")} fps={FPS} width={1920} height={1080} />
+  <Composition id="B7HD" component={B7HDC} durationInFrames={blockDur("b7")} fps={FPS} width={1920} height={1080} />
+  <Composition id="B6HD" component={B6HDC} durationInFrames={blockDur("b6")} fps={FPS} width={1920} height={1080} />
+  <Composition id="B5HD" component={B5HDC} durationInFrames={blockDur("b5")} fps={FPS} width={1920} height={1080} />
+  <Composition id="B4HD" component={B4HDC} durationInFrames={blockDur("b4")} fps={FPS} width={1920} height={1080} />
+  <Composition id="B3HD" component={B3HDC} durationInFrames={blockDur("b3")} fps={FPS} width={1920} height={1080} />
+  <Composition id="B1HD" component={B1HDC} durationInFrames={blockDur("b1")} fps={FPS} width={1920} height={1080} />
+  <Composition id="VShortB2" component={VShortB2} durationInFrames={vShortDur("b2", SKIP_B2)} fps={FPS} width={1080} height={1920} />
+  <Composition id="VShortB1" component={VShortB1} durationInFrames={vShortDur("b1", SKIP_B1)} fps={FPS} width={1080} height={1920} />
+  <Composition id="OutroHD" component={OutroHDC} durationInFrames={blockDur("outro")} fps={FPS} width={1920} height={1080} />
 </>);
