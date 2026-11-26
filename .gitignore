@@ -39,3 +39,6 @@ _*.py
 _*.js
 _*.txt
 *.tmp
+
+# masters de vídeo grandes (>100MB) – não versionar
+*_MASTER.mp4
