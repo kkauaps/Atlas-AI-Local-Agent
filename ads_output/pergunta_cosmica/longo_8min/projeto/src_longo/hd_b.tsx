@@ -10,6 +10,7 @@ import { Atom3D, EarthHD, GalaxyHD, BlackHoleHD, Ray } from "./hd3d";
 import { win, Layer, E, Title, Tag, burst, F } from "./b2hd";
 import { Counter, Label } from "./hd_a";
 import { WoodTable, Person, SoftShadow } from "./touch";
+import { Env, Rig, hand, add } from "./real";
 
 const fmt = (n: number) => Math.round(n).toLocaleString("pt-BR");
 const hue = (nm: number) => `hsl(${interpolate(nm, [400, 700], [275, 0], cl)} 95% 58%)`;
@@ -76,7 +77,7 @@ export const B5HD: React.FC = () => {
           <Shock p={E(t, w("pesaria") + 0.3, w("pesaria") + 1.6)} r={6} pos={[0, -0.8, 0]} tilt={Math.PI / 2} />
         </Stage>
         <Title at={W("cubinho") - 4} lines={["SÓ QUE ESSE CUBINHO", "PESARIA…"]} top={70} size={86} />
-        <Counter at={W("pesaria")} label="PESO" value={`${tons} MILHÕES DE TONELADAS`} x={960} y={860} size={56} />
+        <Counter at={W("pesaria")} label="PESO" value={`${tons} MILHÕES DE TONELADAS`} x={960} y={720} size={50} size={56} />
       </Layer>
       <Layer o={P6}>
         <Stage pos={[-1.6, 0.2, 4.4]} tgt={[-1.6, 0, 0]} fov={45}>
@@ -144,12 +145,9 @@ export const B5V2: React.FC = () => {
   return (
     <AbsoluteFill>
       <Layer o={P1a}>
-        <Stage pos={[0.22 * dive + 0.55 * lerpE(3.4, 0.14, dive), 1.0 - 0.13 * dive + 0.2 * lerpE(3.4, 0.14, dive), -0.04 * dive + 0.82 * lerpE(3.4, 0.14, dive)]} tgt={[0.22 * dive, 1.0 - 0.13 * dive, -0.04 * dive]} fov={40} bg="#0d0907">
-          <fog attach="fog" args={["#0d0907", 5, 12]} />
-          <hemisphereLight args={["#ffe9d0", "#2a1a10", 0.8]} /><directionalLight position={[2, 5, 3]} intensity={2.6} color="#ffe6c8" /><directionalLight position={[-3, 2, -4]} intensity={1.4} color="#8fb0ff" />
-          {[[-3, 1.6, -6, "#ffb46b"], [2, 2.2, -7, "#ffd59a"], [5, 1, -8, "#ff8f5a"]].map(([x, y, z, c], i) => <Glow key={i} pos={[x as number, y as number, z as number]} size={2.4} color={c as string} opacity={0.3} />)}
-          <WoodTable y={0} size={[16, 14]} />
-          <Person pos={[0, 0, 0]} rot={[0, 0.5, 0]} time={t} color="#e6e9ef" />
+        <Stage pos={[0.22 * dive + 0.55 * lerpE(3.4, 0.14, dive), 1.0 - 0.13 * dive + 0.2 * lerpE(3.4, 0.14, dive), -0.04 * dive + 0.82 * lerpE(3.4, 0.14, dive)]} tgt={[0.22 * dive, 1.0 - 0.13 * dive, -0.04 * dive]} fov={40} shadows post bloom={0.45}>
+          <WarmRoom />
+          <Person pos={[0, 0, 0]} rot={[0, 0.5, 0]} time={t} anim="idle" look={0.35 * E(t, 3.0, 4.2, Easing.inOut(Easing.sin))} yaw={0.2} />
         </Stage>
         <Title at={sec(3.3)} lines={["VOCÊ É", "PRATICAMENTE VAZIO"]} top={70} size={96} />
       </Layer>
@@ -197,7 +195,7 @@ export const B5V2: React.FC = () => {
           <Shock p={E(t, w("pesaria") + 0.3, w("pesaria") + 1.6)} r={6} pos={[0, -0.8, 0]} tilt={Math.PI / 2} />
         </Stage>
         <Title at={W("cubinho") - 4} lines={["SÓ QUE ESSE CUBINHO", "PESARIA…"]} top={70} size={86} />
-        <Counter at={W("pesaria")} label="PESO" value={`${tons} MILHÕES DE TONELADAS`} x={960} y={860} size={56} />
+        <Counter at={W("pesaria")} label="PESO" value={`${tons} MILHÕES DE TONELADAS`} x={960} y={720} size={50} size={56} />
       </Layer>
       <Layer o={P6}>
         <Stage pos={[-1.6, 0.2, 4.4]} tgt={[-1.6, 0, 0]} fov={45}>
@@ -217,7 +215,10 @@ export const B5V2: React.FC = () => {
           </div>
         </div>
       </Layer>
-      <Sfx at={W("formiga") - 2} src="sparkle.wav" vol={0.16} />
+      <Sfx at={sec(3)} src="v3/lobby.mp3" vol={0.16} dur={sec(w("um") - 3)} />
+      <Sfx at={W("um") - 10} src="v3/whoosh_space.mp3" vol={0.26} dur={90} />
+      <Sfx at={W("um") + 20} src="v3/micro.mp3" vol={0.14} dur={240} />
+      <Sfx at={W("formiga") - 2} src="sparkle.wav" vol={0.1} />
       <Sfx at={W("nada") - 3} src="impact.wav" vol={0.26} />
       <Sfx at={W("caberia") - 3} src="riser.wav" vol={0.2} />
       <Sfx at={W("pesaria") + 8} src="impact.wav" vol={0.32} />
@@ -352,10 +353,9 @@ export const B4V2: React.FC = () => {
   return (
     <AbsoluteFill>
       <Layer o={C1}>
-        <Stage pos={[Math.sin(t * 0.12) * 0.8, 1.0, 2.6 - t * 0.03]} tgt={[0, 0.3, 0]} fov={36} bg="#0d0907">
-          <fog attach="fog" args={["#0d0907", 4, 11]} />
-          <hemisphereLight args={["#ffe9d0", "#2a1a10", 0.8]} /><directionalLight position={[2, 4, 3]} intensity={2.8} color="#fff1dc" /><directionalLight position={[-3, 2, -3]} intensity={1.2} color="#9ab8ff" />
-          {[[-3, 1.6, -6, "#ffb46b"], [2, 2.2, -7, "#ffd59a"], [5, 1, -8, "#ff8f5a"]].map(([x, y, z, c], i) => <Glow key={i} pos={[x as number, y as number, z as number]} size={2.4} color={c as string} opacity={0.3} />)}
+        <Stage pos={add([Math.sin(t * 0.12) * 0.8, 1.0, 2.6 - t * 0.03], hand(t, 0.6))} tgt={[0, 0.3, 0]} fov={36} shadows post bloom={0.4}>
+          <Env file="royal_esplanade_1k.hdr" intensity={0.8} bgIntensity={0.6} rot={1.4} blur={0.12} />
+          <Rig key_={[2, 3.5, 2.5]} keyColor="#fff0dc" keyI={1.8} rim={[-2, 1.5, -3]} rimColor="#ffcf9a" rimI={3} fillI={0.2} target={[0, 0.2, 0]} area={1.6} catcher={0} />
           <WoodTable y={0} size={[16, 14]} />
           <Fruit kind="apple" pos={[0, 0, 0]} sat={colorIn} />
           <Fruit kind="orange" pos={[-0.62, 0, -0.25]} sat={colorIn} />
@@ -440,7 +440,8 @@ export const B4V2: React.FC = () => {
         <Title at={W("nem") - 3} lines={["NEM TODO MUNDO VÊ", "AS MESMAS CORES"]} top={50} size={76} />
         <Label at={W("oito") - 4} x={640} y={210} size={40}>~8% DOS HOMENS TÊM DALTONISMO</Label>
       </Layer>
-      <Sfx at={W("cabeca") - 3} src="sparkle.wav" vol={0.18} />
+      <Sfx at={sec(3)} src="v3/lobby.mp3" vol={0.15} dur={W("luz") - sec(3)} />
+      <Sfx at={W("cabeca") - 3} src="v3/shimmer.mp3" vol={0.2} dur={100} />
       <Sfx at={W("magenta") - 3} src="swoosh.wav" vol={0.16} />
       <Sfx at={W("inventa") - 2} src="sparkle.wav" vol={0.2} />
       <Sfx at={W("camaroes") - 3} src="swoosh.wav" vol={0.16} />
@@ -502,7 +503,7 @@ export const B3HD: React.FC = () => {
           <Title at={W("envelhecem") - 4} lines={["SEUS PÉS ENVELHECEM", "MAIS DEVAGAR"]} top={0} size={64} />
         </div>
         <Counter at={W("diferenca") - 4} label="DIFERENÇA NUMA VIDA INTEIRA" value="< 0,000001 s" x={1390} y={640} size={66} />
-        <Label at={W("real") - 4} x={1240} y={820} color="#4ADE80" size={52}>MAS É REAL</Label>
+        <Label at={W("real") - 4} x={1240} y={730} color="#4ADE80" size={52}>MAS É REAL</Label>
       </Layer>
       <Layer o={T4}>
         <BG seed={45} colors={["#1e3a8a", "#0f766e"]} t={t} />
@@ -548,11 +549,9 @@ export const B3HD: React.FC = () => {
   );
 };
 /* ---------- shared warm room + 3D clock ---------- */
-const WarmRoom: React.FC = () => (<>
-  <fog attach="fog" args={["#0d0907", 5, 12]} />
-  <hemisphereLight args={["#ffe9d0", "#2a1a10", 0.8]} /><directionalLight position={[2, 5, 3]} intensity={2.6} color="#ffe6c8" /><directionalLight position={[-3, 2, -4]} intensity={1.4} color="#8fb0ff" />
-  {[[-3, 1.6, -6, "#ffb46b"], [2, 2.2, -7, "#ffd59a"], [5, 1, -8, "#ff8f5a"]].map(([x, y, z, c], i) => <Glow key={i} pos={[x as number, y as number, z as number]} size={2.4} color={c as string} opacity={0.3} />)}
-  <WoodTable y={0} size={[16, 14]} />
+const WarmRoom: React.FC<{ tgt?: V3 }> = ({ tgt = [0, 0.9, 0] }) => (<>
+  <Env file="royal_esplanade_1k.hdr" intensity={0.8} bgIntensity={0.75} rot={1.4} blur={0.04} />
+  <Rig key_={[2.5, 4, 3]} keyColor="#ffe2c0" keyI={1.7} rim={[-2.5, 2.5, -4]} rimColor="#ffc890" rimI={3.8} fillI={0.2} target={tgt} area={3} catcher={0.5} />
 </>);
 const Clock3D: React.FC<{ pos: V3; a: number; color: string; s?: number }> = ({ pos, a, color, s = 1 }) => (
   <group position={pos} scale={s} rotation={[0, 0.22, 0]}>
@@ -579,14 +578,14 @@ export const B3V2: React.FC = () => {
   return (
     <AbsoluteFill>
       <Layer o={T1}>
-        <Stage pos={[0.9 + Math.sin(t * 0.2) * 0.3, 1.1, 3.9]} tgt={[0.05, 1.1, 0]} fov={46} bg="#0d0907">
+        <Stage pos={add([0.9 + Math.sin(t * 0.2) * 0.4, 1.1, 3.9 - t * 0.02], hand(t))} tgt={[0.05, 1.05, 0]} fov={46} shadows post bloom={0.45}>
           <WarmRoom />
-          <Person pos={[-0.35, 0, 0]} rot={[0, 0.25, 0]} time={t} color="#e6e9ef" />
+          <Person pos={[-0.35, 0, 0]} rot={[0, 0.25, 0]} time={t} anim="idle" look={0.15 * Math.sin(t * 0.6)} yaw={0.35 * Math.sin(t * 0.4)} />
           <Clock3D pos={[0.45, 1.68, 0.1]} a={t * 4.0} color="#FBBF24" />
           <Clock3D pos={[0.45, 0.22, 0.1]} a={t * 3.6} color="#22D3EE" />
         </Stage>
         <Label at={sec(4.2)} x={1210} y={300} color="#FBBF24" size={40}>CABEÇA: MAIS RÁPIDO</Label>
-        <Label at={sec(4.6)} x={1210} y={760} color="#22D3EE" size={40}>PÉS: MAIS DEVAGAR</Label>
+        <Label at={sec(4.6)} x={1210} y={730} color="#22D3EE" size={40}>PÉS: MAIS DEVAGAR</Label>
         <Title at={sec(3.3)} lines={["O TEMPO PASSA MAIS RÁPIDO", "NA SUA CABEÇA"]} top={50} size={76} />
       </Layer>
       <Layer o={T2}>
@@ -599,9 +598,9 @@ export const B3V2: React.FC = () => {
         <Tag at={W("devagar") - 6} color="#22D3EE">MAIS PERTO DO CENTRO = TEMPO MAIS DEVAGAR</Tag>
       </Layer>
       <Layer o={T3}>
-        <Stage pos={[1.2, 0.9, 3.4]} tgt={[0.4, 0.9, 0]} fov={44} bg="#0d0907">
+        <Stage pos={add([1.2 + Math.sin(t * 0.25) * 0.3, 0.9, 3.4], hand(t))} tgt={[0.4, 0.95, 0]} fov={44} shadows post bloom={0.45}>
           <WarmRoom />
-          <Person pos={[-0.5, 0, 0]} rot={[0, 0.4, 0]} time={t + 3} color="#e6e9ef" />
+          <Person pos={[-0.5, 0, 0]} rot={[0, 0.4, 0]} time={t + 3} anim="idle" look={-0.35} />
           <Clock3D pos={[-0.5, 1.95, 0]} a={t * 4.0} color="#FBBF24" s={0.8} />
           <Glow pos={[-0.5, 0.05, 0.1]} size={0.9} color="#22d3ee" opacity={0.55} />
         </Stage>
@@ -609,7 +608,7 @@ export const B3V2: React.FC = () => {
           <Title at={W("envelhecem") - 4} lines={["SEUS PÉS ENVELHECEM", "MAIS DEVAGAR"]} top={0} size={64} />
         </div>
         <Counter at={W("diferenca") - 4} label="DIFERENÇA NUMA VIDA INTEIRA" value="< 0,000001 s" x={1390} y={640} size={66} />
-        <Label at={W("real") - 4} x={1240} y={820} color="#4ADE80" size={52}>MAS É REAL</Label>
+        <Label at={W("real") - 4} x={1240} y={730} color="#4ADE80" size={52}>MAS É REAL</Label>
       </Layer>
       <Layer o={T4}>
         <BG seed={45} colors={["#1e3a8a", "#0f766e"]} t={t} />
@@ -646,7 +645,10 @@ export const B3V2: React.FC = () => {
         <Title at={W("satelites") - 3} lines={["OS SATÉLITES DE GPS", "CORRIGEM ISSO"]} top={60} size={84} />
         <Tag at={W("dias") - 4}>TODOS OS DIAS</Tag>
       </Layer>
-      <Sfx at={W("einstein") - 2} src="swoosh.wav" vol={0.16} />
+      <Sfx at={sec(3)} src="v3/ticks.mp3" vol={0.22} dur={W("einstein") - sec(3)} />
+      <Sfx at={sec(3)} src="v3/lobby.mp3" vol={0.12} dur={W("einstein") - sec(3)} />
+      <Sfx at={W("seus", 1) - 6} src="v3/ticks.mp3" vol={0.2} dur={W("mas") - W("seus", 1) + 4} />
+      <Sfx at={W("einstein") - 2} src="v3/whoosh_space.mp3" vol={0.18} dur={90} />
       <Sfx at={W("real") - 2} src="impact.wav" vol={0.2} />
       <Sfx at={W("dez") - 3} src="sparkle.wav" vol={0.16} />
       <Sfx at={W("buraco") - 4} src="riser.wav" vol={0.2} />

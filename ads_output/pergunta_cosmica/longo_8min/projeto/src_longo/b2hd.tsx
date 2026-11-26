@@ -40,7 +40,7 @@ export const Tile: React.FC<{ at: number; sym: string; name: string; num: number
   );
 };
 export const Tag: React.FC<{ at: number; children: React.ReactNode; bottom?: number; color?: string; hideV?: boolean }> = ({ at, children, bottom: b0 = 170, color = theme.colors.primary, hideV }) => {
-  const v = useV(); const p = useAbsSpring(at, 0, theme.spring.bouncy); if (v && hideV) return null; const bottom = v ? 570 : b0;
+  const v = useV(); const p = useAbsSpring(at, 0, theme.spring.bouncy); if (v && hideV) return null; const bottom = v ? 570 : b0 + 60;
   return <div style={{ position: "absolute", left: v ? 50 : 0, right: v ? 50 : 0, bottom, display: "flex", justifyContent: "center", opacity: Math.min(1, p * 1.5), transform: `scale(${0.7 + 0.3 * p})` }}>
     <div style={{ textAlign: "center", lineHeight: 1.1, fontFamily: F, fontWeight: 900, fontSize: v ? 44 : 50, color: "#0b0b12", background: color, padding: "14px 34px", borderRadius: 20, boxShadow: `0 0 60px ${color}99` }}>{children}</div></div>;
 };

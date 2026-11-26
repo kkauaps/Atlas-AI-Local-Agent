@@ -9,15 +9,15 @@ import { Atom3D } from "./hd3d";
 import { win, Layer, E, Title, Tag, F } from "./b2hd";
 import { Label, Lattice, shakeAt } from "./hd_a";
 import { WoodTable, Hand, SoftShadow } from "./touch";
+import { Env, Rig, Chair, hand, add } from "./real";
 
 const lerpExp = (a: number, b: number, p: number) => a * Math.pow(b / a, p);
 const HAND = { rot: [0, 0.35, Math.PI / 2 - 0.75] as V3, curl: [0.15, 1.45, 1.55, 1.6], thumb: 0.9 };
 
 /* warm "real world" set: wood table, fog, bokeh */
 const RealSet: React.FC<{ children?: React.ReactNode }> = ({ children }) => (<>
-  <fog attach="fog" args={["#0d0907", 4, 11]} />
-  <hemisphereLight args={["#ffe9d0", "#2a1a10", 0.7]} /><directionalLight position={[2, 5, 3]} intensity={2.8} color="#ffe6c8" /><directionalLight position={[-3, 2, -4]} intensity={1.4} color="#8fb0ff" />
-  {[[-3, 1.6, -6, "#ffb46b"], [2, 2.2, -7, "#ffd59a"], [5, 1, -8, "#ff8f5a"], [-6, 2.8, -9, "#ffe0b0"], [0, 3.4, -10, "#ffc47a"]].map(([x, y, z, c], i) => <Glow key={i} pos={[x as number, y as number, z as number]} size={2.4} color={c as string} opacity={0.32} />)}
+  <Env file="royal_esplanade_1k.hdr" intensity={0.8} bgIntensity={0.6} rot={1.4} blur={0.12} />
+  <Rig key_={[2, 4, 2.5]} keyColor="#fff0dc" keyI={1.8} rim={[-2.5, 1.8, -3]} rimColor="#ffcf9a" rimI={3} fillI={0.2} target={[0, 0.3, 0]} area={1.8} catcher={0} />
   <WoodTable y={0} size={[16, 14]} />
   {children}
 </>);
@@ -90,7 +90,7 @@ export const B8V2: React.FC = () => {
   return (
     <AbsoluteFill>
       <Layer o={P1}>
-        <Stage pos={cam1.toArray() as V3} tgt={tgt1.toArray() as V3} fov={38} bg="#0d0907">
+        <Stage pos={add(cam1.toArray() as V3, hand(t, 0.4))} tgt={tgt1.toArray() as V3} fov={38} shadows post bloom={0.4}>
           <RealSet>
             <SoftShadow pos={[-0.35, 0.004, 0]} sx={1.4 + (1 - down) * 0.8} sz={0.9 + (1 - down) * 0.5} opacity={0.25 + 0.35 * down} />
             <Hand tipTo={[0, tipY, 0]} rot={HAND.rot} curl={HAND.curl} thumb={HAND.thumb} scale={10} />
@@ -112,7 +112,7 @@ export const B8V2: React.FC = () => {
       </Layer>
       <ScaleHUD s={s} o={Math.min(P1 * E(t, zA - 0.3, zA), 1) + P2} />
       <Layer o={P3a}>
-        <Stage pos={[2.5, 1.15, 2.7]} tgt={[-0.3, 0.72, 0]} fov={36} bg="#0d0907">
+        <Stage pos={add([2.5 + Math.sin(t * 0.3) * 0.15, 1.15, 2.7], hand(t, 0.4))} tgt={[-0.3, 0.72, 0]} fov={36} shadows post bloom={0.5}>
           <RealSet>
             <SoftShadow pos={[-0.25, 0.004, 0]} sx={1.2} sz={0.8} opacity={0.25 + 0.3 * ap} />
             <Hand tipTo={[0, tip3, 0]} rot={HAND.rot} curl={HAND.curl} thumb={HAND.thumb} scale={10} />
@@ -156,28 +156,27 @@ export const B8V2: React.FC = () => {
         <Tag at={W("objetos") - 4} color="#F87171">SEM ELA, NADA SERIA SÓLIDO</Tag>
       </Layer>
       <Layer o={P6}>
-        <Stage pos={[3.2, 1.4, 5.2]} tgt={[0, 0.3, 0]} fov={42}>
-          <StarField n={3000} size={0.35} /><ambientLight intensity={0.6} /><directionalLight position={[3, 4, 5]} intensity={2} />
-          <group position={[0, -1, 0]}>
-            <mesh position={[0, 0.5, 0]}><boxGeometry args={[1.3, 0.12, 1.2]} /><meshStandardMaterial color="#92400e" roughness={0.6} /></mesh>
-            <mesh position={[0, 1.2, -0.55]}><boxGeometry args={[1.3, 1.3, 0.1]} /><meshStandardMaterial color="#92400e" roughness={0.6} /></mesh>
-            {[[-0.55, -0.5], [0.55, -0.5], [-0.55, 0.5], [0.55, 0.5]].map(([x, z], i) => <mesh key={i} position={[x, 0, z]}><boxGeometry args={[0.1, 1, 0.1]} /><meshStandardMaterial color="#78350f" /></mesh>)}
-          </group>
-          <HoloBody color="#7dd3fc" seated pos={[0, -0.12 + Math.sin(t * 2) * 0.015, -0.25]} scale={0.62} />
+        <Stage pos={add([3.2 * Math.cos((t - w("cadeira")) * 0.08) , 1.4, 5.2], hand(t, 0.5))} tgt={[0, 0.0, 0]} fov={40} shadows post bloom={0.5}>
+          <Env file="royal_esplanade_1k.hdr" intensity={0.8} bgIntensity={0.7} rot={2.2} blur={0.05} />
+          <Rig key_={[2.5, 4, 3]} keyColor="#ffe2c0" keyI={1.6} rim={[-2.5, 2.5, -4]} rimColor="#9ec5ff" rimI={3} fillI={0.2} target={[0, -0.5, 0]} area={2.5} catcher={0} />
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow><planeGeometry args={[30, 30]} /><shadowMaterial opacity={0.5} transparent /></mesh>
+          <Chair pos={[0, -1, -0.05]} rot={[0, 0, 0]} scale={1.65} />
+          <HoloBody color="#7dd3fc" seated pos={[0, -0.04 + Math.max(0, Math.sin(t * 1.6)) * 0.012, 0.1]} scale={0.62} />
           <mesh position={[0, -0.42, 0]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[1.2, 1.1]} /><meshBasicMaterial color="#fbbf24" transparent opacity={0.25 + 0.15 * Math.sin(f / 4)} toneMapped={false} /></mesh>
         </Stage>
         <Title at={W("cadeira") - 4} lines={["TECNICAMENTE, VOCÊ", "ESTÁ FLUTUANDO"]} top={70} size={86} />
         <Tag at={W("zero") - 6}>A DISTÂNCIA NUNCA CHEGA A ZERO</Tag>
       </Layer>
       {(flash > 0.01 || flash2 > 0.01) && <AbsoluteFill style={{ background: "radial-gradient(circle at 50% 50%, #ffffff, #a5f3fc 40%, rgba(0,0,0,0) 80%)", opacity: Math.max(flash, flash2) * 0.85, mixBlendMode: "screen" }} />}
-      <Sfx at={sec(3.2)} src="swoosh.wav" vol={0.12} />
-      <Sfx at={sec(zA) - 6} src="riser.wav" vol={0.2} />
-      <Sfx at={sec(zB) - 2} src="swoosh.wav" vol={0.22} />
-      <Sfx at={W("negativa") - 3} src="sparkle.wav" vol={0.16} />
-      <Sfx at={sec(apB) - 3} src="swoosh.wav" vol={0.2} />
-      <Sfx at={W("repelem") - 2} src="impact.wav" vol={0.26} />
-      <Sfx at={W("ima") - 3} src="swoosh.wav" vol={0.18} />
-      <Sfx at={W("flutuando") - 3} src="sparkle.wav" vol={0.2} />
+      <Sfx at={sec(3)} src="v3/lobby.mp3" vol={0.16} dur={Math.max(1, sec(zA) - sec(3))} />
+      <Sfx at={sec(w("imagina") + 0.3)} src="v3/tap.mp3" vol={0.35} dur={45} />
+      <Sfx at={sec(zA) - 10} src="v3/whoosh_space.mp3" vol={0.24} dur={90} />
+      <Sfx at={sec(zB) - 4} src="v3/micro.mp3" vol={0.18} dur={240} />
+      <Sfx at={sec(apB) - 6} src="v3/lobby.mp3" vol={0.14} dur={300} />
+      <Sfx at={W("repelem") - 6} src="v3/hum.mp3" vol={0.22} dur={150} />
+      <Sfx at={W("ima") - 4} src="v3/magnet.mp3" vol={0.3} dur={90} />
+      <Sfx at={W("cadeira") - 10} src="v3/chair.mp3" vol={0.26} dur={120} />
+      <Sfx at={W("flutuando") - 6} src="v3/shimmer.mp3" vol={0.2} dur={100} />
     </AbsoluteFill>
   );
 };

@@ -7,10 +7,12 @@ import { B7, B6 } from "./blocks_b";
 import { B5, B4, B3, B2, B1, Outro } from "./blocks_c";
 import { Short, shortDur } from "./short";
 import { HandTest } from "./handtest";
+import { RealTest } from "./realtest";
 import { B8V2 } from "./b8v2";
 import { VShortB2, VShortB1, vShortDur, SKIP_B2, SKIP_B1 } from "./vshort";
 import { B2HD } from "./b2hd";
 import { IntroHD, B8HD, B7HD, B6HD, B7V2, B6V2 } from "./hd_a";
+import { B6V3 } from "./b6v3";
 import { B5HD, B4HD, B3HD, B1HD, OutroHD, B5V2, B4V2, B3V2 } from "./hd_b";
 const B5HDC: React.FC = () => <BlockShell k="b5" n={5} title="VOCÊ É PRATICAMENTE VAZIO"><B5V2 /></BlockShell>;
 const B4HDC: React.FC = () => <BlockShell k="b4" n={4} title="AS CORES NÃO EXISTEM LÁ FORA"><B4V2 /></BlockShell>;
@@ -20,7 +22,7 @@ const OutroHDC: React.FC = () => <BlockShell k="outro"><OutroHD /></BlockShell>;
 const IntroHDC: React.FC = () => <BlockShell k="intro"><IntroHD /></BlockShell>;
 const B8HDC: React.FC = () => <BlockShell k="b8" n={8} title="VOCÊ NUNCA TOCOU EM NADA"><B8V2 /></BlockShell>;
 const B7HDC: React.FC = () => <BlockShell k="b7" n={7} title="VOCÊ ESTÁ VENDO O PASSADO"><B7V2 /></BlockShell>;
-const B6HDC: React.FC = () => <BlockShell k="b6" n={6} title="VOCÊ ESTÁ MAIS RÁPIDO QUE UM AVIÃO"><B6V2 /></BlockShell>;
+const B6HDC: React.FC = () => <BlockShell k="b6" n={6} title="VOCÊ ESTÁ MAIS RÁPIDO QUE UM AVIÃO"><B6V3 /></BlockShell>;
 const B2HDC: React.FC = () => <BlockShell k="b2" n={2} title="VOCÊ É FEITO DE ESTRELAS"><B2HD /></BlockShell>;
 const IntroC: React.FC = () => <BlockShell k="intro"><Intro /></BlockShell>;
 const B8C: React.FC = () => <BlockShell k="b8" n={8} title="VOCÊ NUNCA TOCOU EM NADA"><B8 /></BlockShell>;
@@ -57,5 +59,6 @@ registerRoot(() => <>
   <Composition id="VShortB2" component={VShortB2} durationInFrames={vShortDur("b2", SKIP_B2)} fps={FPS} width={1080} height={1920} />
   <Composition id="VShortB1" component={VShortB1} durationInFrames={vShortDur("b1", SKIP_B1)} fps={FPS} width={1080} height={1920} />
   <Composition id="HandTest" component={HandTest} durationInFrames={1} fps={FPS} width={1920} height={1080} defaultProps={{ r: 0 }} />
+  <Composition id="RealTest" component={RealTest} durationInFrames={1} fps={FPS} width={1920} height={1080} defaultProps={{ r: 0 }} />
   <Composition id="OutroHD" component={OutroHDC} durationInFrames={blockDur("outro")} fps={FPS} width={1920} height={1080} />
 </>);

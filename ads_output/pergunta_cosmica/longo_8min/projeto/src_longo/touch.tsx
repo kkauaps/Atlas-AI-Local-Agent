@@ -11,7 +11,7 @@ export const WoodTable: React.FC<{ y?: number; size?: [number, number] }> = ({ y
   const [d, b, r] = useLoader(THREE.TextureLoader, [staticFile("longo/hardwood2_diffuse.jpg"), staticFile("longo/hardwood2_bump.jpg"), staticFile("longo/hardwood2_roughness.jpg")]);
   useMemo(() => { [d, b, r].forEach((t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2, 1); t.anisotropy = 2; }); d.colorSpace = THREE.SRGBColorSpace; }, [d, b, r]);
   return <group position={[0, y, 0]}>
-    <mesh position={[0, -0.25, 0]}><boxGeometry args={[size[0], 0.5, size[1]]} /><meshLambertMaterial map={d} color="#9c7a5e" /></mesh>
+    <mesh position={[0, -0.25, 0]} receiveShadow><boxGeometry args={[size[0], 0.5, size[1]]} /><meshLambertMaterial map={d} color="#9c7a5e" /></mesh>
   </group>;
 };
 
@@ -59,14 +59,5 @@ export const handTip = (scale: number) => new THREE.Vector3(0.02697, -0.11364, -
 
 /* ---------- mannequin person (three.js Xbot, mixamo) with deterministic animation ---------- */
 import { AnimationMixer } from "three";
-export const Person: React.FC<{ pos?: V3; rot?: V3; scale?: number; anim?: string; time: number; color?: string; opacity?: number; look?: number }> = ({ pos = [0, 0, 0], rot = [0, 0, 0], scale = 1, anim = "idle", time, color, opacity = 1, look = 0 }) => {
-  const gltf = useLoader(GLTFLoader, staticFile("longo/Xbot.glb"));
-  const { scene, mixer, actions } = useMemo(() => { const s = skClone(gltf.scene) as THREE.Object3D; const mixer = new AnimationMixer(s);
-    const actions: Record<string, THREE.AnimationAction> = {}; gltf.animations.forEach((c) => { actions[c.name] = mixer.clipAction(c); });
-    s.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) { m.frustumCulled = false; const mat = (m.material as THREE.MeshStandardMaterial).clone(); if (color && /Beta_Surface|Surface/i.test(m.name)) mat.color = new THREE.Color(color); mat.transparent = opacity < 1; mat.opacity = opacity; m.material = mat; } });
-    return { scene: s, mixer, actions }; }, [gltf, color, opacity]);
-  Object.entries(actions).forEach(([k, a]) => { if (k === anim) { a.play(); a.setEffectiveWeight(1); } else a.stop(); });
-  mixer.setTime(time);
-  if (look) { const get = (n: string) => scene.getObjectByName(n) ?? scene.getObjectByName(n.replace(":", "")); const h = get("mixamorig:Head"), nk = get("mixamorig:Neck"); if (h) h.rotation.x -= look * 0.6; if (nk) nk.rotation.x -= look * 0.4; }
-  return <group position={pos} rotation={rot} scale={scale}><primitive object={scene} /></group>;
-};
+import { Human } from "./real";
+export const Person: React.FC<{ pos?: V3; rot?: V3; scale?: number; anim?: string; time: number; color?: string; opacity?: number; look?: number; anim2?: string; mix?: number; yaw?: number }> = ({ color, opacity, ...p }) => <Human {...p} />;

@@ -9,6 +9,7 @@ import { cl } from "./cl";
 import { useV, Stage, StarField, Nebula, Glow, Points, StarBody, Shock, HoloBody, rng, V3 } from "./hd";
 import { Atom3D, EarthHD, MoonHD, GalaxyHD, Ray, latLon, faceSpin } from "./hd3d";
 import { WoodTable, Person } from "./touch";
+import { Env, Rig, hand, add } from "./real";
 import { win, Layer, E, Title, Tag, burst, F } from "./b2hd";
 
 /* ---------- shared 2D overlays ---------- */
@@ -202,7 +203,7 @@ export const B7HD: React.FC = () => {
           <Ray a={[3.3, 0.3, 0]} b={[-1.8, 0, 0]} p={pm} size={0.6} />
         </Stage>
         <Title at={W("lua") - 4} lines={["LUZ DA LUA → VOCÊ"]} top={80} size={84} />
-        <Counter at={W("lua")} label="ATRASO" value={`${(pm * 1.3).toFixed(1).replace(".", ",")} s`} x={960} y={850} />
+        <Counter at={W("lua")} label="ATRASO" value={`${(pm * 1.3).toFixed(1).replace(".", ",")} s`} x={960} y={740} />
       </Layer>
       <Layer o={L3}>
         <Stage pos={[0, 0.6, 12]} tgt={[0, 0, 0]} fov={42}>
@@ -211,7 +212,7 @@ export const B7HD: React.FC = () => {
           <Ray a={[-2.6, 0, 0]} b={[4.6, 0, 0]} p={ps} size={0.6} />
         </Stage>
         <Title at={W("sol") - 4} lines={["LUZ DO SOL → VOCÊ"]} top={80} size={84} />
-        <Counter at={W("sol")} label="ATRASO" value={`${Math.floor(sunSec / 60)} min ${String(sunSec % 60).padStart(2, "0")} s`} x={960} y={850} />
+        <Counter at={W("sol")} label="ATRASO" value={`${Math.floor(sunSec / 60)} min ${String(sunSec % 60).padStart(2, "0")} s`} x={960} y={740} />
       </Layer>
       <Layer o={L4}>
         <Stage pos={[0, 0, 8 - (t - w("estrelas")) * 0.3]} tgt={[1.5, 0.8, -10]} fov={50}>
@@ -254,11 +255,14 @@ export const B7HD: React.FC = () => {
         </svg>
         <Title at={W("olhar") - 3} lines={["OLHAR PRO CÉU", "É OLHAR PRO PASSADO"]} top={120} size={96} />
       </Layer>
-      <Sfx at={W("lua") - 3} src="swoosh.wav" vol={0.18} />
-      <Sfx at={W("sol") - 3} src="swoosh.wav" vol={0.18} />
-      <Sfx at={W("explodisse") - 2} src="impact.wav" vol={0.28} />
-      <Sfx at={W("webb") - 4} src="sparkle.wav" vol={0.18} />
-      <Sfx at={W("olhar") - 4} src="sparkle.wav" vol={0.2} />
+      <Sfx at={sec(3)} src="v3/night.mp3" vol={0.22} dur={W("lua") - sec(3)} />
+      <Sfx at={W("lua") - 12} src="v3/whoosh_space.mp3" vol={0.22} dur={90} />
+      <Sfx at={W("lua")} src="v3/space_drone.mp3" vol={0.14} dur={W("pessoa") - W("lua")} />
+      <Sfx at={W("explodisse") - 3} src="v3/supernova.mp3" vol={0.4} dur={180} />
+      <Sfx at={W("pessoa") - 9} src="v3/lobby.mp3" vol={0.2} dur={W("astronomos") - W("pessoa") + 6} />
+      <Sfx at={W("astronomos") - 9} src="v3/whoosh_space.mp3" vol={0.22} dur={90} />
+      <Sfx at={W("webb") - 6} src="v3/shimmer.mp3" vol={0.22} dur={120} />
+      <Sfx at={W("olhar") - 9} src="v3/night.mp3" vol={0.22} dur={400} />
     </AbsoluteFill>
   );
 };
@@ -275,6 +279,13 @@ const NightSet: React.FC<{ t: number; galaxy?: number }> = ({ t, galaxy = 0 }) =
   <Glow pos={[30, -2, -60]} size={45} color="#ff9a4a" opacity={0.18} /><Glow pos={[-40, -3, -70]} size={40} color="#ffb36b" opacity={0.12} />
 </>);
 
+const NightReal: React.FC<{ t: number; galaxy?: number }> = ({ t, galaxy = 0 }) => (<>
+  <Env file="moonless_golf_1k.hdr" intensity={0.6} bgIntensity={0.5} rot={0.8 + Math.PI} />
+  <StarField n={9000} r={150} size={0.6} />
+  <Nebula seed={30} colors={["#4c1d95", "#1d4ed8", "#be185d"]} z={-90} opacity={0.12 + 0.4 * galaxy} />
+  <MoonLit /><Glow pos={MOON} size={9} color="#dbe7ff" opacity={0.35} />
+  <Rig key_={[2.5, 2, 3]} keyColor="#ffcf9e" keyI={0.9} rim={[MOON[0] / 4, MOON[1] / 4, MOON[2] / 4]} rimColor="#bcd2ff" rimI={5} fillColor="#4a63a8" fillI={0.35} target={[0, 0.9, 0]} area={3} catcher={0.55} />
+</>);
 export const B7V2: React.FC = () => {
   const { t, w, W } = useBlock("b7"); const f = useCurrentFrame();
   const L1 = win(t, 3.0, w("lua") - 0.2, 0.3), L2 = win(t, w("lua") - 0.2, w("sol") - 0.2), L3 = win(t, w("sol") - 0.2, w("estrelas") - 0.3), L4 = win(t, w("estrelas") - 0.3, w("pessoa") - 0.3),
@@ -286,13 +297,14 @@ export const B7V2: React.FC = () => {
   const deep = E(t, w("astronomos"), w("olhar"), Easing.inOut(Easing.quad));
   const tilt = E(t, w("olhar") - 0.2, w("olhar") + 2.5, Easing.inOut(Easing.cubic));
   const sky = E(t, w("luz") - 0.4, w("lua") - 0.3, Easing.inOut(Easing.cubic));
+  const arr = E(t, 3.0, 4.8, Easing.inOut(Easing.sin)), stop1 = E(t, 4.3, 5.0, Easing.inOut(Easing.sin)), hx = -2.2 * (1 - arr);
   return (
     <AbsoluteFill>
       <Layer o={L1}>
-        <Stage pos={[0.9 - sky * 0.5, 1.25 + sky * 0.4, 3.2 - sky * 0.6]} tgt={[-0.6 * sky, 1.3 + sky * 5.5, -6 - sky * 10]} fov={50} bg="#03050d">
-          <NightSet t={t} />
-          <Person pos={[0, 0, 0]} rot={[0, Math.PI, 0]} time={t} look={0.55} color="#cfd6e4" />
-          {t > w("luz") - 0.6 && Array.from({ length: 7 }).map((_, i) => { const ph = ((t - w("luz") + 0.6) * 0.55 + i / 7) % 1; return <Ray key={i} a={MOON} b={[0.02, 1.62, -0.05]} p={ph} len={0.06} size={0.55} color="#e0ecff" />; })}
+        <Stage pos={add([0.9 - sky * 0.5 + (1 - arr) * -0.5, 1.25 + sky * 0.4, 3.4 - sky * 0.6], hand(t))} tgt={[-0.6 * sky + hx * 0.4, 1.2 + sky * 5.5, -6 * sky - sky * 10]} fov={46} bg="#03050d" shadows post bloom={0.6}>
+          <NightReal t={t} />
+          <Person pos={[hx, 0, 0]} rot={[0, Math.PI / 2 + (Math.PI / 2) * stop1, 0]} time={t} anim="walk" anim2="idle" mix={stop1} look={0.6 * E(t, 4.6, 5.8, Easing.inOut(Easing.sin))} yaw={0.15 * Math.sin(t * 0.5)} />
+          {t > w("luz") - 0.6 && Array.from({ length: 7 }).map((_, i) => { const ph = ((t - w("luz") + 0.6) * 0.55 + i / 7) % 1; return <Ray key={i} a={MOON} b={[hx + 0.02, 1.62, -0.05]} p={ph} len={0.06} size={0.55} color="#e0ecff" />; })}
         </Stage>
         <Title at={sec(3.3)} lines={["TUDO O QUE VOCÊ VÊ", "JÁ ACONTECEU"]} top={80} size={92} />
         <Tag at={W("viajar") - 2}>A LUZ VIAJA A ~300.000 KM POR SEGUNDO</Tag>
@@ -304,7 +316,7 @@ export const B7V2: React.FC = () => {
           <Ray a={[3.3, 0.3, 0]} b={[-1.8, 0, 0]} p={pm} size={0.6} />
         </Stage>
         <Title at={W("lua") - 4} lines={["LUZ DA LUA → VOCÊ"]} top={80} size={84} />
-        <Counter at={W("lua")} label="ATRASO" value={`${(pm * 1.3).toFixed(1).replace(".", ",")} s`} x={960} y={850} />
+        <Counter at={W("lua")} label="ATRASO" value={`${(pm * 1.3).toFixed(1).replace(".", ",")} s`} x={960} y={740} />
       </Layer>
       <Layer o={L3}>
         <Stage pos={[0, 0.6, 12]} tgt={[0, 0, 0]} fov={42}>
@@ -313,7 +325,7 @@ export const B7V2: React.FC = () => {
           <Ray a={[-2.6, 0, 0]} b={[4.6, 0, 0]} p={ps} size={0.6} />
         </Stage>
         <Title at={W("sol") - 4} lines={["LUZ DO SOL → VOCÊ"]} top={80} size={84} />
-        <Counter at={W("sol")} label="ATRASO" value={`${Math.floor(sunSec / 60)} min ${String(sunSec % 60).padStart(2, "0")} s`} x={960} y={850} />
+        <Counter at={W("sol")} label="ATRASO" value={`${Math.floor(sunSec / 60)} min ${String(sunSec % 60).padStart(2, "0")} s`} x={960} y={740} />
       </Layer>
       <Layer o={L4}>
         <Stage pos={[0, 0, 8 - (t - w("estrelas")) * 0.3]} tgt={[1.5, 0.8, -10]} fov={50}>
@@ -327,13 +339,11 @@ export const B7V2: React.FC = () => {
         <Tag at={W("seculos") - 8} color="#FB923C">SE EXPLODISSE HOJE: SÓ VERÍAMOS DAQUI A SÉCULOS</Tag>
       </Layer>
       <Layer o={L5}>
-        <Stage pos={[0.2, 1.55, 3.6]} tgt={[0, 1.35, 0]} fov={38} bg="#0d0907">
-          <fog attach="fog" args={["#0d0907", 5, 12]} />
-          <hemisphereLight args={["#ffe9d0", "#2a1a10", 0.8]} /><directionalLight position={[2, 5, 3]} intensity={2.6} color="#ffe6c8" /><directionalLight position={[-3, 2, -4]} intensity={1.4} color="#8fb0ff" />
-          {[[-3, 1.6, -6, "#ffb46b"], [2, 2.2, -7, "#ffd59a"], [5, 1, -8, "#ff8f5a"]].map(([x, y, z, c], i) => <Glow key={i} pos={[x as number, y as number, z as number]} size={2.4} color={c as string} opacity={0.3} />)}
-          <WoodTable y={0} size={[16, 14]} />
-          <Person pos={[-0.85, 0, 0]} rot={[0, Math.PI / 2, 0]} time={t} color="#e6e9ef" />
-          <Person pos={[0.85, 0, 0]} rot={[0, -Math.PI / 2, 0]} time={t + 0.7} anim={t > w("bilionesimos") ? "agree" : "idle"} color="#e6e9ef" />
+        <Stage pos={add([Math.sin((t - w("pessoa")) * 0.12) * 1.2 + 0.2, 1.5, 3.4 - (t - w("pessoa")) * 0.05], hand(t))} tgt={[0, 1.25, 0]} fov={44} shadows post bloom={0.4}>
+          <Env file="royal_esplanade_1k.hdr" intensity={0.9} bgIntensity={0.8} rot={1.4} blur={0.03} />
+          <Rig key_={[2, 4, 3]} keyColor="#ffe6c8" keyI={1.6} rim={[-2, 2.5, -4]} rimColor="#ffd2a0" rimI={3.5} fillI={0.2} target={[0, 0.9, 0]} area={3} catcher={0.5} />
+          <Person pos={[-0.85, 0, 0]} rot={[0, Math.PI / 2, 0]} time={t} anim="idle" anim2="headShake" mix={0.6 * E(t, w("pessoa"), w("pessoa") + 0.6) * (1 - E(t, w("bilionesimos") - 0.5, w("bilionesimos")))} />
+          <Person pos={[0.85, 0, 0]} rot={[0, -Math.PI / 2, 0]} time={t + 0.7} anim="idle" anim2="agree" mix={E(t, w("bilionesimos") - 0.4, w("bilionesimos") + 0.2)} />
           {Array.from({ length: 6 }).map((_, i) => <Ray key={i} a={[0.62, 1.62, 0]} b={[-0.62, 1.62, 0]} p={((t * 0.8 + i / 6) % 1)} size={0.08} len={0.1} color="#fff3c4" />)}
         </Stage>
         <Title at={W("pessoa") - 4} lines={["ATÉ QUEM ESTÁ", "NA SUA FRENTE"]} top={80} size={88} />
@@ -353,9 +363,9 @@ export const B7V2: React.FC = () => {
         <Tag at={W("treze") - 4}>GALÁXIAS COMO ERAM HÁ +13 BILHÕES DE ANOS</Tag>
       </Layer>
       <Layer o={L7}>
-        <Stage pos={[0.9, 1.25 + tilt * 0.3, 3.2 + tilt * 0.4]} tgt={[0, 1.3 + tilt * 3.2, -6 - tilt * 6]} fov={50} bg="#03050d">
-          <NightSet t={t} galaxy={tilt} />
-          <Person pos={[0, 0, 0]} rot={[0, Math.PI, 0]} time={t} look={0.55 + tilt * 0.25} color="#cfd6e4" />
+        <Stage pos={add([0.9 - tilt * 0.4, 1.2 + tilt * 0.2, 3.2 + tilt * 0.8], hand(t))} tgt={[0, 1.3 + tilt * 3.2, -6 - tilt * 6]} fov={48} bg="#03050d" shadows post bloom={0.7}>
+          <NightReal t={t} galaxy={tilt} />
+          <Person pos={[0, 0, 0]} rot={[0, Math.PI, 0]} time={t} look={0.55 + tilt * 0.25} yaw={0.25 * Math.sin((t - w("olhar")) * 0.7)} />
         </Stage>
         <Title at={W("olhar") - 3} lines={["OLHAR PRO CÉU", "É OLHAR PRO PASSADO"]} top={120} size={96} />
       </Layer>

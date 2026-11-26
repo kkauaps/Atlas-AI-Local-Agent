@@ -20,13 +20,13 @@ const Cam: React.FC<{ pos: V3; tgt: V3; fov: number; roll?: number }> = ({ pos, 
 
 /* full-resolution canvas with cinematic post-processing (bloom + vignette + subtle CA/grain) */
 export const useV = () => { const { width, height } = useVideoConfig(); return height > width; };
-export const Stage: React.FC<{ pos: V3; tgt: V3; fov?: number; roll?: number; bloom?: number; children: React.ReactNode; bg?: string; ca?: number }> = ({ pos, tgt, fov = 45, roll = 0, bloom = 1.1, children, bg = "#010208", ca = 0.0006 }) => {
+export const Stage: React.FC<{ pos: V3; tgt: V3; fov?: number; roll?: number; bloom?: number; children: React.ReactNode; bg?: string; ca?: number; shadows?: boolean; post?: boolean }> = ({ pos, tgt, fov = 45, roll = 0, bloom = 1.1, children, bg = "#010208", ca = 0.0006, shadows = false, post }) => {
   const { width, height } = useVideoConfig();
   const caOff = useMemo(() => new THREE.Vector2(ca, ca), [ca]);
   const W = Math.round(width * POST.res), Hh = Math.round(height * POST.res);
   return (
     <div style={{ position: "absolute", left: 0, top: 0, width: W, height: Hh, transform: `scale(${1 / POST.res})`, transformOrigin: "0 0" }}>
-    <ThreeCanvas width={W} height={Hh} gl={{ antialias: false, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace, powerPreference: "high-performance" }}>
+    <ThreeCanvas width={W} height={Hh} shadows={shadows ? "soft" : undefined} gl={{ antialias: false, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace, powerPreference: "high-performance" }}>
       <color attach="background" args={[bg]} />
       <Cam pos={pos} tgt={tgt} fov={height > width ? Math.min(95, fov * 1.45) : fov} roll={roll} />
       {children}

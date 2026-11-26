@@ -10,6 +10,7 @@ import { BLOCKS } from "./blocks";
 import { Grain, Vignette } from "./components/Layers";
 import { Dust } from "./fx";
 import { cl } from "./cl";
+import { AssetGate, COMMON_ASSETS } from "./assets";
 
 export const sec = (s: number) => Math.round(s * FPS);
 const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
@@ -110,7 +111,7 @@ export const BlockShell: React.FC<{ k: string; n?: number; title?: string; sub?:
   const start = hasSting ? sec(STING) - 10 : 0;
   return (
     <AbsoluteFill style={{ background: theme.colors.bg }}>
-      {useCurrentFrame() >= start - 1 && children}
+      <AssetGate files={COMMON_ASSETS}>{useCurrentFrame() >= start - 1 && children}</AssetGate>
       <Dust n={30} />
       <Captions16 k={k} />
       <Grade16 />
