@@ -29,7 +29,7 @@ export const Stage: React.FC<{ pos: V3; tgt: V3; fov?: number; roll?: number; bl
     <ThreeCanvas width={W} height={Hh} gl={{ antialias: false, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace, powerPreference: "high-performance" }}>
       <color attach="background" args={[bg]} />
       <Cam pos={pos} tgt={tgt} fov={height > width ? Math.min(95, fov * 1.45) : fov} roll={roll} />
-      <React.Suspense fallback={null}>{children}</React.Suspense>
+      {children}
       {POST.on && <EffectComposer multisampling={0} disableNormalPass>
         <Bloom intensity={bloom} luminanceThreshold={0.18} luminanceSmoothing={0.35} mipmapBlur radius={0.75} />
         <ChromaticAberration offset={caOff} blendFunction={BlendFunction.NORMAL} radialModulation={false} modulationOffset={0} />

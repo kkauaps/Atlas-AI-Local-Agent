@@ -25,12 +25,12 @@ export const Atom3D: React.FC<{ pos?: V3; t: number; r?: number; seed?: number; 
 /* ---------- Earth with atmosphere rim ---------- */
 const atmoVS = `varying vec3 vN; varying vec3 vV; void main(){ vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`;
 const atmoFS = `uniform vec3 uC; varying vec3 vN; varying vec3 vV; void main(){ float f=pow(1.-max(dot(vN,vV),0.),3.2); gl_FragColor=vec4(uC*f*1.4, f*0.8); }`;
-export const EarthHD: React.FC<{ pos?: V3; r?: number; spin: number; tilt?: number; tex?: string; atmo?: string }> = ({ pos = [0, 0, 0], r = 1, spin, tilt = 0.4, tex = "longo/earth_real.jpg", atmo = "#60a5fa" }) => {
+export const EarthHD: React.FC<{ pos?: V3; r?: number; spin: number; tilt?: number; tex?: string; atmo?: string; children?: React.ReactNode }> = ({ pos = [0, 0, 0], r = 1, spin, tilt = 0.4, tex = "longo/earth_real.jpg", atmo = "#60a5fa", children }) => {
   const [m] = useLoader(THREE.TextureLoader, [staticFile(tex)]);
   const am = useMemo(() => new THREE.ShaderMaterial({ vertexShader: atmoVS, fragmentShader: atmoFS, uniforms: { uC: { value: new THREE.Color(atmo) } }, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide, toneMapped: false }), [atmo]);
   const am2 = useMemo(() => new THREE.ShaderMaterial({ vertexShader: atmoVS, fragmentShader: atmoFS, uniforms: { uC: { value: new THREE.Color(atmo) } }, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }), [atmo]);
   return <group position={pos} rotation={[tilt, 0, 0]}>
-    <mesh rotation={[0, spin, 0]}><sphereGeometry args={[r, 96, 96]} /><meshStandardMaterial map={m} roughness={0.85} metalness={0.05} /></mesh>
+    <group rotation={[0, spin, 0]}><mesh><sphereGeometry args={[r, 96, 96]} /><meshStandardMaterial map={m} roughness={0.85} metalness={0.05} /></mesh>{children}</group>
     <mesh material={am2} scale={1.005}><sphereGeometry args={[r, 64, 64]} /></mesh>
     <mesh material={am} scale={1.045}><sphereGeometry args={[r, 64, 64]} /></mesh>
   </group>;
@@ -87,3 +87,7 @@ export const Arrow3D: React.FC<{ from: V3; to: V3; color?: string; w?: number }>
     <mesh position={A.clone().add(d.clone().multiplyScalar(0.88)).toArray() as V3} quaternion={q}><coneGeometry args={[w * 3, L * 0.24, 20]} /><meshBasicMaterial color={color} toneMapped={false} /></mesh></group>;
 };
 export { dotTex };
+
+/* lat/lon -> point on a three.js SphereGeometry of radius r */
+export const latLon = (lat: number, lon: number, r: number): V3 => { const u = (lon + 180) / 360, v = (90 - lat) / 180; return [-Math.cos(2 * Math.PI * u) * Math.sin(Math.PI * v) * r, Math.cos(Math.PI * v) * r, Math.sin(2 * Math.PI * u) * Math.sin(Math.PI * v) * r]; };
+export const faceSpin = (p: V3) => Math.atan2(-p[0], p[2]);
